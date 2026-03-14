@@ -1,55 +1,3 @@
-getgenv().FastAttack = true
-
--- Settings giống Redz
-local FastAttackSettings = {
-    Delay = 0.001,
-    Hits = 15,
-    Range = 80
-}
-
-local Players = game:GetService("Players")
-local VirtualUser = game:GetService("VirtualUser")
-
-task.spawn(function()
-    while getgenv().FastAttack do
-        pcall(function()
-
-            local plr = Players.LocalPlayer
-            local char = plr.Character
-            if not char then return end
-
-            local tool = char:FindFirstChildOfClass("Tool")
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-
-            if tool and hrp then
-
-                -- spam activate
-                for i = 1, FastAttackSettings.Hits do
-                    tool:Activate()
-                end
-
-                -- click bypass
-                VirtualUser:CaptureController()
-                VirtualUser:Button1Down(Vector2.new(0,0))
-
-                -- hitbox expand
-                for _,v in pairs(workspace.Enemies:GetChildren()) do
-                    if v:FindFirstChild("HumanoidRootPart") then
-                        if (v.HumanoidRootPart.Position - hrp.Position).Magnitude <= FastAttackSettings.Range then
-                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
-                            v.HumanoidRootPart.Transparency = 1
-                            v.HumanoidRootPart.CanCollide = false
-                        end
-                    end
-                end
-
-            end
-
-        end)
-
-        task.wait(FastAttackSettings.Delay)
-    end
-end)
 print("Break");
 local v0 = require(game:GetService("ReplicatedStorage").Notification);
 v0.new("<Color=Cyan>Welcome to Ten Hub<Color=/>"):Display();
@@ -3265,9 +3213,7 @@ task.spawn(function()
                 end
             end
         end)
-        task.wait(FastAttackSettings.Delay)
-    end
-end)
+                       task.wait(FastAttackSettings.Delay)
 				end
 			end);
 		end
