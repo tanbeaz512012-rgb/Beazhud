@@ -1,0 +1,69 @@
+--// SETTINGS
+_G.FastAttack = true
+_G.KillAura = true
+_G.Magnet = true
+
+--// SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+--// COMBAT FRAMEWORK
+local CombatFramework = require(Player.PlayerScripts:WaitForChild("CombatFramework"))
+local CombatFrameworkR = getupvalues(CombatFramework)[2]
+
+--// FAST ATTACK
+local function FastAttack()
+    local ac = CombatFrameworkR.activeController
+    if not ac then return end
+    
+    ac.timeToNextAttack = 0
+    ac.hitboxMagnitude = 70
+    ac.increment = 4
+    ac.blocking = false
+    
+    ac:attack()
+end
+
+--// MAGNET NPC
+local function Magnet()
+    for _,v in pairs(Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+            if v.Humanoid.Health > 0 then
+                v.HumanoidRootPart.CFrame =
+                    Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-6)
+            end
+        end
+    end
+end
+
+--// KILL AURA
+local function KillAura()
+    for _,v in pairs(Workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") then
+            if v.Humanoid.Health > 0 then
+                FastAttack()
+            end
+        end
+    end
+end
+
+--// LOOP
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        if _G.FastAttack then
+            FastAttack()
+        end
+        
+        if _G.Magnet then
+            Magnet()
+        end
+        
+        if _G.KillAura then
+            KillAura()
+        end
+    end)
+end)
