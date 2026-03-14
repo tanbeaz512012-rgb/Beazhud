@@ -1,0 +1,79 @@
+repeat wait() until game:IsLoaded()
+
+_G.AutoFarm = false
+_G.FastAttack = false
+
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+--// GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "BeazHub"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,420,0,260)
+frame.Position = UDim2.new(0.35,0,0.3,0)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+
+local title = Instance.new("TextLabel",frame)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "Beaz Hub Premium Scripts"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+
+local farm = Instance.new("TextButton",frame)
+farm.Size = UDim2.new(0,150,0,40)
+farm.Position = UDim2.new(0,20,0,60)
+farm.Text = "Enable Farm"
+
+farm.MouseButton1Click:Connect(function()
+    _G.AutoFarm = not _G.AutoFarm
+    
+    while _G.AutoFarm do
+        wait()
+        
+        for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+            if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                char.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+            end
+        end
+        
+    end
+end)
+
+local fast = Instance.new("TextButton",frame)
+fast.Size = UDim2.new(0,150,0,40)
+fast.Position = UDim2.new(0,20,0,110)
+fast.Text = "Fast Attack"
+
+fast.MouseButton1Click:Connect(function()
+    _G.FastAttack = not _G.FastAttack
+    
+    while _G.FastAttack do
+        task.wait()
+        
+        pcall(function()
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+            game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
+        end)
+        
+    end
+end)
+
+local hop = Instance.new("TextButton",frame)
+hop.Size = UDim2.new(0,150,0,40)
+hop.Position = UDim2.new(0,20,0,160)
+hop.Text = "Server Hop"
+
+hop.MouseButton1Click:Connect(function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
+
+local cpu = Instance.new("TextButton",frame)
+cpu.Size = UDim2.new(0,150,0,40)
+cpu.Position = UDim2.new(0,20,0,210)
+cpu.Text = "Reduce CPU"
+
+cpu.MouseButton1Click:Connect(function()
+    settings().Rendering.QualityLevel = "Level01"
+end)
