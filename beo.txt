@@ -1,0 +1,143 @@
+--// BEAZ HUB FULL META BLOX FRUITS
+
+repeat task.wait() until game:IsLoaded()
+
+_G.AutoFarm = false
+_G.FastAttack = false
+_G.AutoBoss = false
+_G.AutoFruit = false
+
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+--// GUI
+local gui = Instance.new("ScreenGui",game.CoreGui)
+gui.Name = "BeazHub"
+
+local frame = Instance.new("Frame",gui)
+frame.Size = UDim2.new(0,420,0,300)
+frame.Position = UDim2.new(0.35,0,0.3,0)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+
+local title = Instance.new("TextLabel",frame)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "Beaz Hub Premium Scripts"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+
+--// AUTO FARM
+local farm = Instance.new("TextButton",frame)
+farm.Size = UDim2.new(0,160,0,40)
+farm.Position = UDim2.new(0,20,0,60)
+farm.Text = "Auto Farm"
+
+farm.MouseButton1Click:Connect(function()
+_G.AutoFarm = not _G.AutoFarm
+
+while _G.AutoFarm do
+task.wait()
+
+pcall(function()
+for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+char.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+end
+end
+end)
+
+end
+end)
+
+--// FAST ATTACK
+local fast = Instance.new("TextButton",frame)
+fast.Size = UDim2.new(0,160,0,40)
+fast.Position = UDim2.new(0,20,0,110)
+fast.Text = "Fast Attack"
+
+fast.MouseButton1Click:Connect(function()
+_G.FastAttack = not _G.FastAttack
+
+while _G.FastAttack do
+task.wait()
+
+pcall(function()
+game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
+end)
+
+end
+end)
+
+--// AUTO BOSS
+local boss = Instance.new("TextButton",frame)
+boss.Size = UDim2.new(0,160,0,40)
+boss.Position = UDim2.new(0,20,0,160)
+boss.Text = "Auto Boss"
+
+boss.MouseButton1Click:Connect(function()
+_G.AutoBoss = not _G.AutoBoss
+
+while _G.AutoBoss do
+task.wait()
+
+pcall(function()
+for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+if string.find(v.Name,"Boss") then
+char.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,5)
+end
+end
+end)
+
+end
+end)
+
+--// AUTO FRUIT
+local fruit = Instance.new("TextButton",frame)
+fruit.Size = UDim2.new(0,160,0,40)
+fruit.Position = UDim2.new(0,20,0,210)
+fruit.Text = "Auto Fruit"
+
+fruit.MouseButton1Click:Connect(function()
+_G.AutoFruit = not _G.AutoFruit
+
+while _G.AutoFruit do
+task.wait()
+
+for i,v in pairs(game.Workspace:GetChildren()) do
+if string.find(v.Name,"Fruit") then
+char.HumanoidRootPart.CFrame = v.Handle.CFrame
+end
+end
+
+end
+end)
+
+--// SERVER HOP
+local hop = Instance.new("TextButton",frame)
+hop.Size = UDim2.new(0,160,0,40)
+hop.Position = UDim2.new(0,220,0,60)
+hop.Text = "Server Hop"
+
+hop.MouseButton1Click:Connect(function()
+game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
+
+--// REDUCE CPU
+local cpu = Instance.new("TextButton",frame)
+cpu.Size = UDim2.new(0,160,0,40)
+cpu.Position = UDim2.new(0,220,0,110)
+cpu.Text = "Reduce CPU"
+
+cpu.MouseButton1Click:Connect(function()
+settings().Rendering.QualityLevel = "Level01"
+end)
+
+--// CLOSE UI
+local close = Instance.new("TextButton",frame)
+close.Size = UDim2.new(0,160,0,40)
+close.Position = UDim2.new(0,220,0,160)
+close.Text = "Close"
+
+close.MouseButton1Click:Connect(function()
+gui:Destroy()
+end)
