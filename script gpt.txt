@@ -1,0 +1,64 @@
+repeat wait() until game:IsLoaded()
+
+_G.AutoFarm = true
+_G.AutoHaki = true
+_G.FastAttack = true
+_G.AutoSkill = true
+
+local Player = game.Players.LocalPlayer
+local Char = Player.Character or Player.CharacterAdded:Wait()
+
+-- AUTO HAKI
+spawn(function()
+    while _G.AutoHaki do
+        pcall(function()
+            if not Char:FindFirstChild("HasBuso") then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+            end
+        end)
+        wait(1)
+    end
+end)
+
+-- FAST ATTACK
+spawn(function()
+    while _G.FastAttack do
+        pcall(function()
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+        end)
+        wait(0.05)
+    end
+end)
+
+-- AUTO SKILL
+spawn(function()
+    while _G.AutoSkill do
+        pcall(function()
+            game:GetService("VirtualInputManager"):SendKeyEvent(true,"Z",false,game)
+            wait(0.2)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true,"X",false,game)
+            wait(0.2)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true,"C",false,game)
+            wait(0.2)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true,"V",false,game)
+        end)
+        wait(3)
+    end
+end)
+
+-- AUTO FARM ENEMY
+spawn(function()
+    while _G.AutoFarm do
+        pcall(function()
+            for i,v in pairs(workspace.Enemies:GetChildren()) do
+                if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                    repeat wait()
+                        Char.HumanoidRootPart.CFrame =
+                            v.HumanoidRootPart.CFrame * CFrame.new(0,0,5)
+                    until v.Humanoid.Health <= 0 or not _G.AutoFarm
+                end
+            end
+        end)
+    end
+end)
