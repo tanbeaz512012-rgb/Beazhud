@@ -3219,19 +3219,55 @@ task.spawn(function()
 		end);
 	end
 end);
-local v86 = {
-	"REDZ ATTACK",
-};
-v63 = "REDZ ATTACK";
-v68:Dropdown("Fast Attack Delay", v86, function(v377)
-	v63 = v377;
-end);
-spawn(function()
-	while wait() do
-		if v63 then
-			pcall(function()
-				if (v63 == "REDZ ATTACK") then
-					v63 = 0.02;
+getgenv().FastAttack = true
+
+-- Settings giống Redz
+local FastAttackSettings = {
+    Delay = 0.002,
+    Hits = 12,
+    Range = 65
+}
+
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+
+task.spawn(function()
+    while getgenv().FastAttack do
+        pcall(function()
+
+            local plr = Players.LocalPlayer
+            local char = plr.Character
+            if not char then return end
+
+            local tool = char:FindFirstChildOfClass("Tool")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+
+            if tool and hrp then
+
+                -- spam activate
+                for i = 1, FastAttackSettings.Hits do
+                    tool:Activate()
+                end
+
+                -- click bypass
+                VirtualUser:CaptureController()
+                VirtualUser:Button1Down(Vector2.new(0,0))
+
+                -- hitbox expand
+                for _,v in pairs(workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") then
+                        if (v.HumanoidRootPart.Position - hrp.Position).Magnitude <= FastAttackSettings.Range then
+                            v.HumanoidRootPart.Size = Vector3.new(60,60,60)
+                            v.HumanoidRootPart.Transparency = 1
+                            v.HumanoidRootPart.CanCollide = false
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(FastAttackSettings.Delay)
+    end
+end)
 				end
 			end);
 		end
