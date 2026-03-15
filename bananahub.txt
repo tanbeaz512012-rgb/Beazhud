@@ -1,9 +1,10 @@
-local v14 = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))();
-local v15 = v14:CreateWindow({
-    Title = "Banana Cat Hub-Blox Fruit [ freemium ]",-- thay tên bạn muốn đặt
-    SubTitle = "By Béo",-- tên bạn
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Banana Cat Hub - Blox Fruit [Freemium]",
+    SubTitle = "By BÉO",
     TabWidth = 160,
-    Theme = "Dark",--màu
+    Theme = "Dark",
     Acrylic = false,
     Size = UDim2.fromOffset(500, 320),
     MinimizeKey = Enum.KeyCode.End
