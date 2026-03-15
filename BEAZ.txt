@@ -1,6 +1,3 @@
-Tuyệt vời! Bạn đã gửi toàn bộ script. Tôi sẽ cung cấp cho bạn phiên bản đã được chỉnh sửa hoàn chỉnh để fix lỗi không gây damage. Bạn chỉ cần copy và paste toàn bộ nội dung dưới đây vào file bananahub.txt:
-
-```lua
 local v14 = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))();
 local v15 = v14:CreateWindow({
     Title = "Banana Cat Hub-Blox Fruit [ Premium ]",
