@@ -1,7 +1,7 @@
-local v14 = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))();
+local v14 = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))();
 local v15 = v14:CreateWindow({
     Title = "Banana Cat Hub-Blox Fruit [ freemium ]",-- thay tên bạn muốn đặt
-    SubTitle = "By BÉO",-- tên bạn
+    SubTitle = "By Béo",-- tên bạn
     TabWidth = 160,
     Theme = "Dark",--màu
     Acrylic = false,
@@ -2502,7 +2502,7 @@ spawn(function()
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     Tween(v1433.HumanoidRootPart.CFrame * Pos);
-                                    v1433.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
+                                    v1433.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     v1433.HumanoidRootPart.Transparency = 1;
                                     v1433.Humanoid.JumpPower = 0;
                                     v1433.Humanoid.WalkSpeed = 0;
@@ -2555,7 +2555,7 @@ spawn(function()
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     Tween(v839.HumanoidRootPart.CFrame * Pos);
-                                    v839.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
+                                    v839.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     v839.HumanoidRootPart.Transparency = 1;
                                     v839.Humanoid.JumpPower = 0;
                                     v839.Humanoid.WalkSpeed = 0;
@@ -2596,7 +2596,7 @@ spawn(function()
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     v1031.HumanoidRootPart.CanCollide = false;
-                                    v1031.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
+                                    v1031.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     Tween(v1031.HumanoidRootPart.CFrame * Pos);
                                 until (v1031.Humanoid.Health <= 0) or not v1031.Parent or not _G.CastleRaid
                             end
@@ -6106,7 +6106,7 @@ spawn(function()
                             if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 1000000000) then
                                 v734.Head.CanCollide = false;
                                 v734.HumanoidRootPart.CanCollide = false;
-                                v734.HumanoidRootPart.Size = Vector3.new(80, 80, 80);
+                                v734.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
                                 v734.HumanoidRootPart.CFrame = FarmPos;
                                 if v734.Humanoid:FindFirstChild("Animator") then
                                     v734.Humanoid.Animator:Destroy();
@@ -6116,7 +6116,7 @@ spawn(function()
                         elseif (v734.Name == MonFarm) then
                             if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 1000000000) then
                                 v734.HumanoidRootPart.CFrame = FarmPos;
-                                v734.HumanoidRootPart.Size = Vector3.new(80, 80, 80);
+                                v734.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
                                 v734.HumanoidRootPart.Transparency = 1;
                                 v734.Humanoid.JumpPower = 0;
                                 v734.Humanoid.WalkSpeed = 0;
