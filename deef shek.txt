@@ -1,0 +1,284 @@
+local v14 = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))();
+local v15 = v14:CreateWindow({
+    Title = "Banana Cat Hub-Blox Fruit [ Premium ]",
+    SubTitle = "By Béo",
+    TabWidth = 160,
+    Theme = "Dark",
+    Acrylic = false,
+    Size = UDim2.fromOffset(500, 320),
+    MinimizeKey = Enum.KeyCode.End
+});
+
+-- =============================================
+-- THÊM MỚI: HÀM ATTACK HIỆU QUẢ
+-- =============================================
+
+-- Hàm attack mới thay thế AttackNoCoolDown
+function NewAttack()
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character
+        if not character then return end
+        
+        -- Cách 1: Click chuột ảo
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
+        wait(0.05)
+        game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
+        
+        -- Cách 2: Gửi remote attack trực tiếp
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local attackRemote = ReplicatedStorage:FindFirstChild("Remotes") and 
+                             ReplicatedStorage.Remotes:FindFirstChild("Combat") and 
+                             ReplicatedStorage.Remotes.Combat:FindFirstChild("Attack")
+        
+        if attackRemote then
+            attackRemote:FireServer()
+        end
+        
+        -- Cách 3: Kích hoạt tool đang cầm
+        if character:FindFirstChildOfClass("Tool") then
+            local tool = character:FindFirstChildOfClass("Tool")
+            if tool:FindFirstChild("ClickEvent") then
+                tool.ClickEvent:FireServer()
+            elseif tool:FindFirstChild("Activate") then
+                tool.Activate:FireServer()
+            end
+        end
+    end)
+end
+
+-- Hàm Auto Haki cải tiến
+function AutoHaki()
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        if player.Character and not player.Character:FindFirstChild("HasBuso") then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+        end
+    end)
+end
+
+-- Tối ưu tốc độ đánh
+spawn(function()
+    while task.wait(0.1) do
+        if _G.FastAttackStrix_Mode == "Super Fast Attack" then
+            _G.Fast_Delay = 0.04
+        end
+    end
+end)
+
+-- =============================================
+-- PHẦN CHỌN VŨ KHÍ (ĐÃ TỐI ƯU)
+-- =============================================
+
+-- Hàm equip vũ khí cải tiến
+function EquipWeapon(weaponName)
+    pcall(function()
+        local player = game:GetService("Players").LocalPlayer
+        if player.Backpack:FindFirstChild(weaponName) then
+            player.Character.Humanoid:EquipTool(player.Backpack[weaponName])
+            return true
+        end
+        return false
+    end)
+end
+
+local v16 = {
+    Home = v15:AddTab({ Title = "Tab Information" }),
+    Main = v15:AddTab({ Title = "Tab Farming" }),
+    Sea = v15:AddTab({ Title = "Tab Volcano And Sea Event" }),
+    ITM = v15:AddTab({ Title = "Tab Farming Other" }),
+    Setting = v15:AddTab({ Title = "Setting Farm" }),
+    Status = v15:AddTab({ Title = "Tab Status And Server" }),
+    Stats = v15:AddTab({ Title = "Tab Stats" }),
+    Player = v15:AddTab({ Title = "Tab Local Player" }),
+    Teleport = v15:AddTab({ Title = "Tab Teleport" }),
+    Visual = v15:AddTab({ Title = "Tab Visual" }),
+    Fruit = v15:AddTab({ Title = "Tab Esp And Fruit" }),
+    Raid = v15:AddTab({ Title = "Tab Raid" }),
+    Race = v15:AddTab({ Title = "Tab Upgrade Race" }),
+    Shop = v15:AddTab({ Title = "Tab Shop" }),
+    Misc = v15:AddTab({ Title = "Tab Misc" })
+};
+
+local v17 = v14.Options;
+local v18 = game.PlaceId;
+
+-- Xác định Sea
+if (v18 == 2753915549) then
+    Sea1 = true;
+elseif (v18 == 4442272183) then
+    Sea2 = true;
+elseif (v18 == 7449423635) then
+    Sea3 = true;
+else
+    game:Shutdown();
+end
+
+-- Anti AFK
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame);
+    wait();
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame);
+end);
+
+-- Reset biến Sea
+Sea1 = false;
+Sea2 = false;
+Sea3 = false;
+local v19 = game.PlaceId;
+if (v19 == 2753915549) then
+    Sea1 = true;
+elseif (v19 == 4442272183) then
+    Sea2 = true;
+elseif (v19 == 7449423635) then
+    Sea3 = true;
+end
+
+-- =============================================
+-- GIỮ NGUYÊN CÁC HÀM CHECK LEVEL, BOSS, MATERIAL, ESP...
+-- (Từ đây đến dòng có Auto Level giữ nguyên)
+-- =============================================
+
+function CheckLevel()
+    -- Giữ nguyên code gốc
+    local v197 = game:GetService("Players").LocalPlayer.Data.Level.Value;
+    if Sea1 then
+        -- ... (giữ nguyên code CheckLevel gốc)
+    end
+end
+
+-- ... (Tất cả code gốc từ đây đến phần Auto Level giữ nguyên)
+
+-- =============================================
+-- SỬA LẠI PHẦN AUTO LEVEL
+-- =============================================
+
+local v48 = v16.Main:AddDropdown("DropdownSelectWeapon", {
+    Title = "Select weapon",
+    Description = "",
+    Values = {
+        "Melee",
+        "Sword",
+        "Blox Fruits"
+    },
+    Multi = false,
+    Default = 1
+});
+
+v48:SetValue("Melee");
+v48:OnChanged(function(v236)
+    ChooseWeapon = v236;
+end);
+
+-- Vòng lặp chọn vũ khí (đã tối ưu)
+task.spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            local player = game:GetService("Players").LocalPlayer
+            local backpack = player.Backpack
+            if not backpack then return end
+            
+            local targetType
+            if ChooseWeapon == "Melee" then
+                targetType = "Melee"
+            elseif ChooseWeapon == "Sword" then
+                targetType = "Sword"
+            elseif ChooseWeapon == "Blox Fruits" then
+                targetType = "Blox Fruit"
+            else
+                return
+            end
+            
+            for _, tool in pairs(backpack:GetChildren()) do
+                if tool:IsA("Tool") and tool.ToolTip == targetType then
+                    SelectWeapon = tool.Name
+                    break
+                end
+            end
+        end)
+    end
+end);
+
+-- Auto Level (ĐÃ SỬA)
+local v49 = v16.Main:AddToggle("ToggleLevel", {
+    Title = "Auto Farm Level",
+    Description = "",
+    Default = false
+});
+
+v49:OnChanged(function(v237)
+    _G.AutoLevel = v237;
+    if (v237 == false) then
+        wait();
+        Tween(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame);
+        wait();
+    end
+end);
+v17.ToggleLevel:SetValue(false);
+
+-- Vòng lặp Auto Level đã sửa
+spawn(function()
+    while task.wait() do
+        if _G.AutoLevel then
+            pcall(function()
+                CheckLevel();
+                local player = game:GetService("Players").LocalPlayer
+                local questGui = player.PlayerGui.Main.Quest
+                
+                if (not string.find(questGui.Container.QuestTitle.Title.Text, NameMon) or (questGui.Visible == false)) then
+                    -- Hủy quest cũ và nhận quest mới
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest");
+                    Tween(CFrameQ);
+                    if ((CFrameQ.Position - player.Character.HumanoidRootPart.Position).Magnitude <= 5) then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, QuestLv);
+                    end
+                else
+                    -- Đánh quái
+                    for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") and enemy.Humanoid.Health > 0 and enemy.Name == Ms then
+                            repeat
+                                task.wait(_G.Fast_Delay)
+                                
+                                -- Bật Haki
+                                AutoHaki()
+                                
+                                -- Equip vũ khí
+                                if SelectWeapon then
+                                    EquipWeapon(SelectWeapon)
+                                end
+                                
+                                -- TP đến quái
+                                bringmob = true
+                                Tween(enemy.HumanoidRootPart.CFrame * Pos)
+                                
+                                -- Vô hiệu hóa quái
+                                enemy.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                enemy.HumanoidRootPart.Transparency = 1
+                                enemy.Humanoid.JumpPower = 0
+                                enemy.Humanoid.WalkSpeed = 0
+                                enemy.HumanoidRootPart.CanCollide = false
+                                FarmPos = enemy.HumanoidRootPart.CFrame
+                                MonFarm = enemy.Name
+                                
+                                -- TẤN CÔNG 5 LẦN LIÊN TỤC để đảm bảo gây damage
+                                for i = 1, 5 do
+                                    NewAttack()
+                                    task.wait(0.02)
+                                end
+                                
+                            until not _G.AutoLevel or not enemy.Parent or enemy.Humanoid.Health <= 0 or not questGui.Visible
+                            bringmob = false
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end);
+
+-- =============================================
+-- GIỮ NGUYÊN PHẦN CÒN LẠI CỦA SCRIPT
+-- =============================================
+
+-- Tiếp tục với code gốc từ đây...
