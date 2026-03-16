@@ -8,54 +8,24 @@ local v15 = Library:CreateWindow({
 })
 
 
-local v16 = {
-    Home = v15:AddTab({
-        Title = "Tab Information"
-    }),
-    Main = v15:AddTab({
-        Title = "Tab Farming"
-    }),
-    Sea = v15:AddTab({
-        Title = "Tab Volcano And Sea Event"
-    }),
-    ITM = v15:AddTab({
-        Title = "Tab Farming Other"
-    }),
-    Setting = v15:AddTab({
-        Title = "Setting Farm"
-    }),
-    Status = v15:AddTab({
-        Title = "Tab Status And Server"
-    }),
-    Stats = v15:AddTab({
-        Title = "Tab Stats"
-    }),
-    Player = v15:AddTab({
-        Title = "Tab Local Player"
-    }),
-    Teleport = v15:AddTab({
-        Title = "Tab Teleport"
-    }),
-    Visual = v15:AddTab({
-        Title = "Tab Visual"
-    }),
-    Fruit = v15:AddTab({
-        Title = "Tab Esp And Fruit"
-    }),
-    Raid = v15:AddTab({
-        Title = "Tab Raid"
-    }),
-    Race = v15:AddTab({
-        Title = "Tab Upgrade Race"
-    }),
-    Shop = v15:AddTab({
-        Title = "Tab Shop"
-    }),
-    Misc = v15:AddTab({
-        Title = "Tab Misc"
-    })
-};
-
+-- Cách viết gọn hơn:
+local Tabs = {
+    Home = Window:AddTab({ Title = "Tab Information" }),
+    Main = Window:AddTab({ Title = "Tab Farming" }),
+    Sea = Window:AddTab({ Title = "Tab Volcano And Sea Event" }),
+    ITM = Window:AddTab({ Title = "Tab Farming Other" }),
+    Setting = Window:AddTab({ Title = "Setting Farm" }),
+    Status = Window:AddTab({ Title = "Tab Status And Server" }),
+    Stats = Window:AddTab({ Title = "Tab Stats" }),
+    Player = Window:AddTab({ Title = "Tab Local Player" }),
+    Teleport = Window:AddTab({ Title = "Tab Teleport" }),
+    Visual = Window:AddTab({ Title = "Tab Visual" }),
+    Fruit = Window:AddTab({ Title = "Tab Esp And Fruit" }),
+    Raid = Window:AddTab({ Title = "Tab Raid" }),
+    Race = Window:AddTab({ Title = "Tab Upgrade Race" }),
+    Shop = Window:AddTab({ Title = "Tab Shop" }),
+    Misc = Window:AddTab({ Title = "Tab Misc" })
+}
 -- =============================================
 -- THÊM DÒNG NÀY (RẤT QUAN TRỌNG)
 -- =============================================
