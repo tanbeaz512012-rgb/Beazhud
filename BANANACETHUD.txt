@@ -7,6 +7,12 @@ local v15 = v14:CreateWindow({
     Acrylic = false,
     Size = UDim2.fromOffset(500, 320),
     MinimizeKey = Enum.KeyCode.End
+wait(1)
+
+Library:Notify({
+    Title = "",
+    Description = "The UI automatically hides once executed.\nPress the button at the bottom-left of the screen to show the GUI.",
+    Duration = 3
 });
 
 -- =============================================
