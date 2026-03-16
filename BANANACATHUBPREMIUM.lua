@@ -24,7 +24,7 @@ function NewAttack()
         -- Cách 1: Click chuột ảo
         game:GetService("VirtualUser"):CaptureController()
         game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        task.wait(0.02)
+        task.wait(0.05)
         game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
         
         -- Cách 2: Gửi remote attack trực tiếp
@@ -78,7 +78,7 @@ _G.FastAttackStrix_Mode = "Super Fast Attack";
 spawn(function()
     while task.wait(0.1) do
         if _G.FastAttackStrix_Mode == "Super Fast Attack" then
-            _G.Fast_Delay = 0.02
+            _G.Fast_Delay = 0.04
         end
     end
 end)
@@ -344,8 +344,8 @@ if not table.find({"Melee","Blox Fruit","Sword","Gun"},tt) then return end
 local cd=eq:FindFirstChild("Cooldown") and eq.Cooldown.Value or Config.AttackCooldown
 if not self:CheckStun(c,h,tt) then return end
 local cb=self:GetCombo()
-cd=cd+(cb>=Config.MaxCombo and 0.02 or 0)
-self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.02) or tick()
+cd=cd+(cb>=Config.MaxCombo and 0.05 or 0)
+self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.05) or tick()
 if tt=="Blox Fruit" and eq:FindFirstChild("LeftClickRemote") then
 self:UseFruitM1(c,eq,cb)
 elseif tt=="Gun" then
@@ -2600,15 +2600,15 @@ Type = 1;
 spawn(function()
     while wait() do
         if (Type == 1) then
-            Pos = CFrame.new(0, 20, 0);
+            Pos = CFrame.new(0, 40, 0);
         elseif (Type == 2) then
-            Pos = CFrame.new(0, 20, 0);
+            Pos = CFrame.new(- 40, 40, 0);
         elseif (Type == 3) then
-            Pos = CFrame.new(0, 20, 0);
+            Pos = CFrame.new(40, 40, 0);
         elseif (Type == 4) then
-            Pos = CFrame.new(0, 20, 0);
+            Pos = CFrame.new(0, 40, 40);
         elseif (Type == 5) then
-            Pos = CFrame.new(0, 20, 0);
+            Pos = CFrame.new(0, 40, - 40);
         end
     end
 end);
@@ -2671,7 +2671,7 @@ function to(v233)
                 repeat
                     wait(_G.Fast_Delay);
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v233;
-                    wait(0.02);
+                    wait(0.05);
                     game.Players.LocalPlayer.Character.Head:Destroy();
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v233;
                 until ((v233.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2500) and (game.Players.LocalPlayer.Character.Humanoid.Health > 0)
