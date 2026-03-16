@@ -2717,39 +2717,48 @@ local v47 = v26:Create(v23, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.Easin
 });
 
 -- 🟢 Toggle state
-local toggled = true
+local toggled = true  -- true = menu đang mở
 
 v23.MouseButton1Down:Connect(function()
+    -- Hiệu ứng hạt
     v25.Rate = 100;
-    task.delay(1, function()
-        v25.Rate = 0;
-    end);
+    task.delay(1, function() v25.Rate = 0; end);
 
-    v47:Play();
+    -- Xoay nút
+    v26:Create(v23, TweenInfo.new(0.5), {Rotation = 360}):Play()
+    
+    -- Gửi phím End (nếu cần)
     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game);
 
-    v47.Completed:Connect(function()
-        v23.Rotation = 0;
-    end);
-
-    if not toggled then
-        -- Bật trạng thái: to + trắng đặc
-        toggled = true
-        v23.BackgroundTransparency = 0
-        v23.BackgroundColor3 = Color3.fromRGB(255,255,255)
-        local v235 = v26:Create(v23, TweenInfo.new(0.2, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 60, 0, 60)
-        });
-        v235:Play()
-    else
-        -- Tắt trạng thái: nhỏ + trong nhẹ
+    -- XỬ LÝ TOGGLE MENU
+    if toggled then
+        -- Tắt menu: ẨN đi, KHÔNG DESTROY
         toggled = false
+        
+        -- Ẩn cửa sổ Fluent
+        if Fluent and Fluent.Window then
+            Fluent.Window.Root.Visible = false
+        end
+        
+        -- Hiệu ứng nút: thu nhỏ + trong suốt
         v23.BackgroundTransparency = 0.5
-        v23.BackgroundColor3 = Color3.fromRGB(255,255,255)
-        local v483 = v26:Create(v23, TweenInfo.new(0.2, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+        v26:Create(v23, TweenInfo.new(0.2, Enum.EasingStyle.Bounce), {
             Size = UDim2.new(0, 50, 0, 50)
-        });
-        v483:Play()
+        }):Play()
+    else
+        -- Bật menu: HIỆN lại
+        toggled = true
+        
+        -- Hiện cửa sổ Fluent
+        if Fluent and Fluent.Window then
+            Fluent.Window.Root.Visible = true
+        end
+        
+        -- Hiệu ứng nút: phóng to + đặc
+        v23.BackgroundTransparency = 0
+        v26:Create(v23, TweenInfo.new(0.2, Enum.EasingStyle.Bounce), {
+            Size = UDim2.new(0, 60, 0, 60)
+        }):Play()
     end
 end)
 
