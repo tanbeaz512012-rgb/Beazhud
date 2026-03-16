@@ -1,3 +1,559 @@
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local UserInputService = game:GetService("UserInputService")
+local lp = Players.LocalPlayer
+
+-- ==========================================
+-- FIX LAG SIÊU NHẸ (CHỈ CLIENT)
+-- ==========================================
+
+-- Tắt shadow + fog (tiết kiệm GPU)
+pcall(function()
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 100000
+    Lighting.Brightness = 1
+    Lighting.ClockTime = 12
+end)
+
+-- Tắt hiệu ứng nước (giảm CPU)
+pcall(function()
+    local terrain = workspace:FindFirstChild("Terrain")
+    if terrain then
+        terrain.WaterWaveSize = 0
+        terrain.WaterWaveSpeed = 0
+        terrain.WaterReflectance = 0
+    end
+end)
+
+-- Set chất lượng đồ họa thấp nhất
+pcall(function()
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+end)
+
+-- ==========================================
+-- DỌN DẸP HIỆU ỨNG RÁC (CHẠY NGẦM)
+-- ==========================================
+
+task.spawn(function()
+    while task.wait(5) do
+        pcall(function()
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+                    v.Enabled = false
+                    v.Rate = 0
+                elseif v:IsA("Sound") and v.Parent ~= lp.Character then
+                    v.Volume = 0
+                    v.Playing = false
+                end
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+-- TỐI ƯU CHO 32BIT / MÁY YẾU
+-- ==========================================
+
+-- Giới hạn FPS để máy không quá tải (30fps là đủ)
+local targetFPS = 30
+local lastTime = tick()
+RunService.RenderStepped:Connect(function()
+    local currentTime = tick()
+    local delta = currentTime - lastTime
+    
+    if delta < 1/targetFPS then
+        wait(1/targetFPS - delta)
+    end
+    
+    lastTime = currentTime
+end)
+
+-- Giảm simulation radius (tránh load quá nhiều object)
+task.spawn(function()
+    while task.wait(2) do
+        pcall(function()
+            local char = lp.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                sethiddenproperty(lp, "SimulationRadius", 300)
+                sethiddenproperty(lp, "MaximumSimulationRadius", 300)
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+-- HOOK ANTI BAN VỪA PHẢI (KHÔNG DỄ VĂNG)
+-- ==========================================
+
+-- Chống AFK cơ bản
+lp.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
+
+-- Hook nhẹ chỉ chặn mấy cái dễ gây ban
+local oldNamecall
+pcall(function()
+    local mt = getrawmetatable(game)
+    if not mt then return end
+    
+    oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        -- Chỉ chặn remote TeleportDetect (dễ gây ban nhất)
+        if method == "FireServer" and self.Name == "TeleportDetect" then
+            return -- Chặn im lặng
+        end
+        
+        -- Cho phép mọi thứ khác qua
+        return oldNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, true)
+end)
+
+-- Fake movement nhẹ (tránh anti-cheat phát hiện đứng im)
+task.spawn(function()
+    while task.wait(10) do
+        pcall(function()
+            local char = lp.Character
+            if char and char:FindFirstChild("Humanoid") then
+                -- Chỉ fake khi thực sự đứng im
+                if char.Humanoid.MoveDirection.Magnitude < 0.1 then
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    wait(0.05)
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
+                end
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+-- TẮT DECAL XA (GIẢM VRAM)
+-- ==========================================
+
+task.spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            local char = lp.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Decal") or v:IsA("Texture") then
+                    if v.Parent and v.Parent:IsA("BasePart") then
+                        local dist = (v.Parent.Position - char.HumanoidRootPart.Position).Magnitude
+                        if dist > 150 then
+                            v.Transparency = 1
+                        else
+                            v.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+-- DỌN BỘ NHỚ (CHỐNG TRÀN RAM)
+-- ==========================================
+
+task.spawn(function()
+    while task.wait(60) do
+        pcall(function()
+            collectgarbage("collect")
+        end)
+    end
+end)
+
+-- ==========================================
+-- CHECK MÁY YẾU - TỰ ĐỘNG ĐIỀU CHỈNH
+-- ==========================================
+
+pcall(function()
+    -- Nếu là máy 32bit hoặc RAM thấp, giảm thêm
+    if syn and syn.crash then
+        targetFPS = 20 -- Giảm thêm cho executor yếu
+    end
+end)
+
+-- ==========================================
+-- KẾT THÚC - MÁY YẾU NHẤT CŨNG CHẠY ĐƯỢC
+-- ==========================================
+_G.UltraAttack = false
+_G.UltraClick = false
+
+-- Services
+local Players = game:GetService("Players")
+local VIM = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local lp = Players.LocalPlayer
+
+-- Require modules
+local Net = require(ReplicatedStorage.Modules.Net)
+local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
+
+-- Remotes
+local hitRemote = Net:RemoteEvent("RegisterHit")
+local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
+
+-- ==========================================
+-- CODE CLICK MỚI CỦA BẠN
+-- ==========================================
+-- Tải script fast attack
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
+
+-- Hàm attack nhanh
+local function GetBladeHits()
+local t={}
+local function d(v)return(v.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude end
+for _,p in pairs({game.Workspace.Enemies,game.Workspace.Characters})do
+for _,v in pairs(p:GetChildren())do
+if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
+if d(v.HumanoidRootPart)<60 then table.insert(t,v)end
+end
+end
+end
+return t
+end
+
+local function AttackAll()
+local plr=game.Players.LocalPlayer
+local ch=plr.Character
+if not ch then return end
+local ew=ch:FindFirstChild("EquippedWeapon")
+if not ew then return end
+local e=GetBladeHits()
+if #e>0 then
+local n=game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
+n:WaitForChild("RE/RegisterAttack"):FireServer(-math.huge)
+local a={nil,{}}
+for i,v in pairs(e)do
+if not a[1] then a[1]=v.Head end
+a[2][i]={v,v.HumanoidRootPart}
+end
+n:WaitForChild("RE/RegisterHit"):FireServer(unpack(a))
+end
+end
+spawn(function()while task.wait()do AttackAll()end end)
+
+-- =============================================
+-- FAST ATTACK CONFIG
+-- =============================================
+
+local Players=game:GetService("Players")
+local RunService=game:GetService("RunService")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local Workspace=game:GetService("Workspace")
+
+local Player=Players.LocalPlayer
+local Modules=ReplicatedStorage:WaitForChild("Modules")
+local Net=Modules:WaitForChild("Net")
+local RegisterAttack=Net:WaitForChild("RE/RegisterAttack")
+local RegisterHit=Net:WaitForChild("RE/RegisterHit")
+local ShootGunEvent=Net:WaitForChild("RE/ShootGunEvent")
+
+getgenv().PMT_GunFast=(getgenv().PMT_GunFast~=false)
+getgenv().PMT_GunFast_Delay=getgenv().PMT_GunFast_Delay or 0.02
+getgenv().PMT_GunFast_PrimeEvery=getgenv().PMT_GunFast_PrimeEvery or 0.35
+
+local Config={AttackDistance=65,AttackMobs=true,AttackPlayers=true,AttackCooldown=0.01,ComboResetTime=0.3,MaxCombo=4,HitboxLimbs={"RightLowerArm","RightUpperArm","LeftLowerArm","LeftUpperArm","RightHand","LeftHand"},AutoClickEnabled=true}
+
+local FastAttack={}
+FastAttack.__index=FastAttack
+
+function FastAttack.new()
+local s=setmetatable({Debounce=0,ComboDebounce=0,ShootDebounce=0,M1Combo=0,EnemyRootPart=nil,Connections={},Overheat={Dragonstorm={MaxOverheat=3,Cooldown=0,TotalOverheat=0,Distance=350,Shooting=false}},ShootsPerTarget={["Dual Flintlock"]=2},SpecialShoots={["Skull Guitar"]="TAP",["Bazooka"]="Position",["Cannon"]="Position",["Dragonstorm"]="Overheat"},_GunLastPrime=0,_GunLastShot=0,_LastGunTargetModel=nil,CombatFlags=nil,ShootFunction=nil,HitFunction=nil},FastAttack)
+pcall(function()
+s.CombatFlags=require(Modules.Flags).COMBAT_REMOTE_THREAD
+s.ShootFunction=getupvalue(require(ReplicatedStorage.Controllers.CombatController).Attack,9)
+local ls=Player:WaitForChild("PlayerScripts"):FindFirstChildOfClass("LocalScript")
+if ls and getsenv then s.HitFunction=getsenv(ls)._G.SendHitsToServer end
+end)
+return s
+end
+
+function FastAttack:IsEntityAlive(e)
+local h=e and e:FindFirstChild("Humanoid")
+return h and h.Health>0
+end
+
+function FastAttack:CheckStun(c,h,tt)
+local st=c:FindFirstChild("Stun")
+local bs=c:FindFirstChild("Busy")
+if h.Sit and (tt=="Sword" or tt=="Melee" or tt=="Blox Fruit") then return false end
+if (st and st.Value>0) or (bs and bs.Value) then return false end
+return true
+end
+
+function FastAttack:GetBladeHits(c,dist)
+local pos=c:GetPivot().Position
+local bh={}
+dist=dist or Config.AttackDistance
+local function proc(f)
+for _,e in ipairs(f:GetChildren())do
+if e~=c and self:IsEntityAlive(e) then
+local bp=e:FindFirstChild(Config.HitboxLimbs[math.random(#Config.HitboxLimbs)]) or e:FindFirstChild("HumanoidRootPart")
+if bp and (pos-bp.Position).Magnitude<=dist then
+if not self.EnemyRootPart then self.EnemyRootPart=bp else table.insert(bh,{e,bp})end
+end
+end
+end
+end
+if Config.AttackMobs then proc(Workspace.Enemies)end
+if Config.AttackPlayers then proc(Workspace.Characters)end
+return bh
+end
+
+function FastAttack:GetClosestEnemy(c,dist)
+local hits=self:GetBladeHits(c,dist)
+local cl,md=nil,math.huge
+self._LastGunTargetModel=nil
+for _,h in ipairs(hits)do
+local m=(c:GetPivot().Position-h[2].Position).Magnitude
+if m<md then md=m;cl=h[2];self._LastGunTargetModel=h[1] end
+end
+return cl
+end
+
+function FastAttack:GetCombo()
+local cb=(tick()-self.ComboDebounce)<=Config.ComboResetTime and self.M1Combo or 0
+cb=cb>=Config.MaxCombo and 1 or cb+1
+self.ComboDebounce=tick()
+self.M1Combo=cb
+return cb
+end
+
+local function _nv3(p)
+if vector and vector.create then return vector.create(p.X,p.Y,p.Z) end
+return Vector3.new(p.X,p.Y,p.Z)
+end
+
+local function _handle(m)
+if not m or not m.Parent then return nil end
+for _,d in ipairs(m:GetDescendants())do
+if d:IsA("Accessory") then
+local h=d:FindFirstChild("Handle")
+if h and h:IsA("BasePart") then return h end
+end
+end
+local hrp=m:FindFirstChild("HumanoidRootPart")
+if hrp and hrp:IsA("BasePart") then return hrp end
+return nil
+end
+
+function FastAttack:_PrimeGun(tl)
+if not tl or not tl.Parent or tl.Parent~=Player.Character then return end
+local now=os.clock()
+local ev=tonumber(getgenv().PMT_GunFast_PrimeEvery) or 0.35
+if now-(self._GunLastPrime or 0)<ev then return end
+self._GunLastPrime=now
+pcall(function()tl:Activate()end)
+pcall(function()if firesignal and tl.Activated then firesignal(tl.Activated)end end)
+end
+
+function FastAttack:ShootInTarget(tp)
+if not getgenv().PMT_GunFast then return end
+local c=Player.Character
+if not self:IsEntityAlive(c) then return end
+local tl=c:FindFirstChildOfClass("Tool")
+if not tl or tl.ToolTip~="Gun" then return end
+self:_PrimeGun(tl)
+local now=os.clock()
+local del=tonumber(getgenv().PMT_GunFast_Delay) or 0.02
+if now-(self._GunLastShot or 0)<del then return end
+self._GunLastShot=now
+local m=self._LastGunTargetModel
+local h=_handle(m)
+if not h then return end
+pcall(function()ShootGunEvent:FireServer(_nv3(tp),{h})end)
+end
+
+function FastAttack:UseNormalClick(c,h,cd)
+self.EnemyRootPart=nil
+local bh=self:GetBladeHits(c)
+if self.EnemyRootPart then
+RegisterAttack:FireServer(cd)
+if self.CombatFlags and self.HitFunction then
+self.HitFunction(self.EnemyRootPart,bh)
+else
+RegisterHit:FireServer(self.EnemyRootPart,bh)
+end
+end
+end
+
+function FastAttack:UseFruitM1(c,eq,cb)
+local t=self:GetBladeHits(c)
+if not t[1] then return end
+local dir=(t[1][2].Position-c:GetPivot().Position).Unit
+eq.LeftClickRemote:FireServer(dir,cb)
+end
+
+function FastAttack:Attack()
+if not Config.AutoClickEnabled or (tick()-self.Debounce)<Config.AttackCooldown then return end
+local c=Player.Character
+if not c or not self:IsEntityAlive(c) then return end
+local h=c.Humanoid
+local eq=c:FindFirstChildOfClass("Tool")
+if not eq then return end
+local tt=eq.ToolTip
+if not table.find({"Melee","Blox Fruit","Sword","Gun"},tt) then return end
+local cd=eq:FindFirstChild("Cooldown") and eq.Cooldown.Value or Config.AttackCooldown
+if not self:CheckStun(c,h,tt) then return end
+local cb=self:GetCombo()
+cd=cd+(cb>=Config.MaxCombo and 0.05 or 0)
+self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.05) or tick()
+if tt=="Blox Fruit" and eq:FindFirstChild("LeftClickRemote") then
+self:UseFruitM1(c,eq,cb)
+elseif tt=="Gun" then
+local t=self:GetClosestEnemy(c,120)
+if t then self:ShootInTarget(t.Position)end
+else
+self:UseNormalClick(c,h,cd)
+end
+end
+
+local AttackInstance=FastAttack.new()
+table.insert(AttackInstance.Connections,RunService.Stepped:Connect(function()AttackInstance:Attack()end))
+
+RunService.Heartbeat:Connect(function()
+if not getgenv().PMT_GunFast then return end
+local c=Player.Character
+if not c then return end
+local tl=c:FindFirstChildOfClass("Tool")
+if not tl or tl.ToolTip~="Gun" then return end
+AttackInstance:_PrimeGun(tl)
+end)
+
+for _,v in pairs(getgc(true))do
+if typeof(v)=="function" and iscclosure(v) then
+local n=debug.getinfo(v).name
+if n=="Attack" or n=="attack" or n=="RegisterHit" then
+hookfunction(v,function(...)
+AttackInstance:Attack()
+return v(...)
+end)
+end
+end
+end
+
+local Modules=game.ReplicatedStorage.Modules
+local Net=Modules.Net
+local Register_Hit,Register_Attack=Net:WaitForChild("RE/RegisterHit"),Net:WaitForChild("RE/RegisterAttack")
+local Funcs={}
+function GetAllBladeHits()
+bladehits={}
+for _,v in pairs(workspace.Enemies:GetChildren())do
+if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health>0 and (v.HumanoidRootPart.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude<=65 then
+table.insert(bladehits,v)
+end
+end
+return bladehits
+end
+function Getplayerhit()
+bladehits={}
+for _,v in pairs(workspace.Characters:GetChildren())do
+if v.Name~=game.Players.LocalPlayer.Name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health>0 and (v.HumanoidRootPart.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude<=65 then
+table.insert(bladehits,v)
+end
+end
+return bladehits
+end
+function Funcs:Attack()
+local bladehits={}
+for _,v in pairs(GetAllBladeHits())do table.insert(bladehits,v)end
+for _,v in pairs(Getplayerhit())do table.insert(bladehits,v)end
+if #bladehits==0 then return end
+local args={[1]=nil,[2]={},[4]="078da341"}
+for r,v in pairs(bladehits)do
+Register_Attack:FireServer(0)
+if not args[1] then args[1]=v.Head end
+args[2][r]={[1]=v,[2]=v.HumanoidRootPart}
+end
+Register_Hit:FireServer(unpack(args))
+end
+spawn(function()
+while task.wait(0.05) do
+pcall(function()
+local ch=game.Players.LocalPlayer.Character
+local t=ch and ch:FindFirstChildOfClass("Tool")
+if t then Funcs:Attack() end
+end)
+end
+end)
+
+-- =============================================
+-- KẾT THÚC FAST ATTACK
+-- =============================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+
+-- PLAYER
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui", 5)
+
+-- CHARACTER
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- EXPLOIT CHECK
+local executor = (getexecutorname and getexecutorname()) or (identifyexecutor and identifyexecutor())
+if executor then
+    if
+        string.find(executor, "Bunni") or
+        string.find(executor, "FluxusZ") or
+        string.find(executor, "Delta") or
+        string.find(executor, "Arceus") or
+        string.find(executor, "Xeno") or
+        string.find(executor, "Swift") or
+        string.find(executor, "Awp") or
+        string.find(executor, "Volcano") or
+        string.find(executor, "Argon") or
+        string.find(executor, "Macsploit") or
+        string.find(executor, "Potassium") or
+        string.find(executor, "CodeX") or
+        string.find(executor, "Velocity") or
+        string.find(executor, "Romix") or
+        string.find(executor, "Neutron")
+    then
+        print("ok")
+    else
+        game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use volcano or Exploit paid!")
+    end
+end
+
+-- ALIASES
+local ply = Players
+local replicated = ReplicatedStorage
+local RunSer = RunService
+local vim1 = VirtualInputManager
+local vim2 = VirtualUser
+local TW = TweenService
+local plr = Player
+local Root = HumanoidRootPart
+
+-- ==========================================
+-- LOAD UI LIBRARY (HDanh Hub)
+-- ==========================================
 Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/longhihilonghihi-hub/Aihoicailoncacchobuoiwisibchcj/refs/heads/main/Ditmemayluccailoncacymafluc"))()
 
 Window = Library:CreateWindow({
@@ -5,85 +561,6 @@ Window = Library:CreateWindow({
     Desc = "- Blox Fruit",
     Image = "rbxassetid://110806021585124"
 })
-
-
--- =============================================
--- FIX LỖI KHÔNG GÂY DAMAGE - THÊM CÁC HÀM ATTACK MỚI
--- =============================================
-
--- Hàm attack mới thay thế AttackNoCoolDown
-function NewAttack()
-    print("✅ Hàm NewAttack được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        local character = player.Character
-        if not character then return end
-        
-        -- Cách 1: Click chuột ảo
-        game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        task.wait(0.05)
-        game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
-        
-        -- Cách 2: Gửi remote attack trực tiếp
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local attackRemote = ReplicatedStorage:FindFirstChild("Remotes") and 
-                             ReplicatedStorage.Remotes:FindFirstChild("Combat") and 
-                             ReplicatedStorage.Remotes.Combat:FindFirstChild("Attack")
-        
-        if attackRemote then
-            attackRemote:FireServer()
-        end
-        
-        -- Cách 3: Kích hoạt tool đang cầm
-        if character:FindFirstChildOfClass("Tool") then
-            local tool = character:FindFirstChildOfClass("Tool")
-            if tool:FindFirstChild("ClickEvent") then
-                tool.ClickEvent:FireServer()
-            elseif tool:FindFirstChild("Activate") then
-                tool.Activate:FireServer()
-            end
-        end
-    end)
-end
-
--- Hàm Auto Haki cải tiến
-function AutoHaki()
-    print("✅ Hàm AutoHaki được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        if player.Character and not player.Character:FindFirstChild("HasBuso") then
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
-        end
-    end)
-end
-
--- Hàm equip vũ khí cải tiến
-function EquipWeapon(weaponName)
-    print("✅ Hàm EquipWeapon được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        if player.Backpack:FindFirstChild(weaponName) then
-            player.Character.Humanoid:EquipTool(player.Backpack[weaponName])
-            return true
-        end
-        return false
-    end)
-end
-
--- Tối ưu tốc độ đánh
-_G.FastAttackStrix_Mode = "Super Fast Attack";
-spawn(function()
-    while task.wait(0.1) do
-        if _G.FastAttackStrix_Mode == "Super Fast Attack" then
-            _G.Fast_Delay = 0.04
-        end
-    end
-end)
-
--- =============================================
--- KHAI BÁO CÁC TAB
--- =============================================
 
 local v16 = {
     Home = v15:AddTab({
