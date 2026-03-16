@@ -1,10 +1,12 @@
-Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/longhihilonghihi-hub/Aihoicailoncacchobuoiwisibchcj/refs/heads/main/Ditmemayluccailoncacymafluc"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/longhihilonghihi-hub/Aihoicailoncacchobuoiwisibchcj/refs/heads/main/Ditmemayluccailoncacymafluc"))()
 
-Window = Library:CreateWindow({
-    Title = "Red 🇻🇳 Hub",
+-- TO WINDOW TRC
+local v15 = Library:CreateWindow({
+    Title = "Red  Hub",
     Desc = "- Blox Fruit",
     Image = "rbxassetid://110806021585124"
 })
+
 
 local v16 = {
     Home = v15:AddTab({
