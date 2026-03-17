@@ -6469,108 +6469,41 @@ spawn(function()
         end);
     end
 end);
+-- =============================================
+-- BRING MOB FIXED - BẢN CHUẨN NHẤT
+-- =============================================
+
+-- Tắt camera shake
 local v89 = require(game.ReplicatedStorage.Util.CameraShaker);
 v89:Stop();
+
+-- Toggle Bring Mob trong Setting
 local v90 = v16.Setting:AddToggle("ToggleBringMob", {
     Title = "Bring Mob",
-    Description = "",
+    Description = "Kéo mob về vị trí farm",
     Default = true
 });
+
 v90:OnChanged(function(v277)
     _G.BringMob = v277;
 end);
+
 v17.ToggleBringMob:SetValue(true);
-spawn(function()
-    while wait() do
-        pcall(function()
-            for v733, v734 in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                if (_G.BringMob and bringmob) then
-                    if ((v734.Name == MonFarm) and v734:FindFirstChild("Humanoid") and (v734.Humanoid.Health > 0)) then
-                        -- =============================================
--- BRING MOB FIXED - TỐI ƯU HÓA HOÀN TOÀN
--- =============================================
 
--- Khai báo biến toàn cục
-_G.BringMob = true  -- Bật/tắt bring mob
-_G.BringMobDistance = 400  -- Khoảng cách kéo mob
+-- Khai báo biến
+_G.BringMob = true
+_G.BringMobDistance = 400
 
--- Hàm kiểm tra mob có đang được farm không
+-- Hàm kiểm tra mob mục tiêu
 local function IsTargetMob(mob)
     if not mob or not mob.Name then return false end
-    
-    -- Danh sách các mob đang được farm
-    local targetMobs = {}
-    
-    -- Thêm mob từ Auto Level
-    if _G.AutoLevel and Ms then
-        targetMobs[Ms] = true
-    end
-    
-    -- Thêm mob từ Auto Material
-    if _G.AutoMaterial and MMon then
-        targetMobs[MMon] = true
-    end
-    
-    -- Thêm mob từ Auto Near
-    if _G.AutoNear and MonFarm then
-        targetMobs[MonFarm] = true
-    end
-    
-    -- Thêm mob từ các tính năng khác
-    if _G.AutoBone and (MonFarm == "Reborn Skeleton" or MonFarm == "Living Zombie" 
-                       or MonFarm == "Demonic Soul" or MonFarm == "Posessed Mummy") then
-        targetMobs[MonFarm] = true
-    end
-    
-    if _G.CakePrince and (MonFarm == "Cookie Crafter" or MonFarm == "Cake Guard" 
-                         or MonFarm == "Baking Staff" or MonFarm == "Head Baker") then
-        targetMobs[MonFarm] = true
-    end
-    
-    -- Kiểm tra nếu mob nằm trong danh sách mục tiêu
-    return targetMobs[mob.Name] == true
+    if _G.AutoLevel and Ms and mob.Name == Ms then return true end
+    if _G.AutoMaterial and MMon and mob.Name == MMon then return true end
+    if _G.AutoNear and MonFarm and mob.Name == MonFarm then return true end
+    return false
 end
 
--- Hàm bring mob chính
-local function BringMobsToPosition()
-    if not _G.BringMob then return end
-    if not bringmob then return end
-    if not FarmPos then return end
-    
-    pcall(function()
-        for _, mob in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-            if mob and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
-                local humanoid = mob.Humanoid
-                local rootPart = mob.HumanoidRootPart
-                
-                if humanoid.Health > 0 then
-                    local distance = (rootPart.Position - FarmPos.Position).Magnitude
-                    
-                    if IsTargetMob(mob) and distance <= _G.BringMobDistance then
-                        rootPart.CanCollide = false
-                        rootPart.Size = Vector3.new(120, 120, 120)
-                        rootPart.Transparency = 1
-                        
-                        humanoid.JumpPower = 0
-                        humanoid.WalkSpeed = 0
-                        
-                        if humanoid:FindFirstChild("Animator") then
-                            humanoid.Animator:Destroy()
-                        end
-                        
-                        rootPart.CFrame = FarmPos
-                        rootPart.CanCollide = false
-                        mob.Head.CanCollide = false
-                        
-                        sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
-                    end
-                end
-            end
-        end
-    end)
-end
-
--- Cập nhật vị trí farm
+-- Hàm cập nhật vị trí farm
 local function UpdateFarmPosition()
     spawn(function()
         while task.wait(0.1) do
@@ -6590,28 +6523,72 @@ local function UpdateFarmPosition()
     end)
 end
 
--- Khởi chạy
+-- Hàm bring mob chính
+local function BringMobs()
+    if not _G.BringMob or not bringmob or not FarmPos then return end
+    
+    pcall(function()
+        for _, mob in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+            if mob and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
+                local humanoid = mob.Humanoid
+                local rootPart = mob.HumanoidRootPart
+                
+                if humanoid.Health > 0 and IsTargetMob(mob) then
+                    local distance = (rootPart.Position - FarmPos.Position).Magnitude
+                    
+                    if distance <= _G.BringMobDistance then
+                        -- Kéo mob về vị trí farm
+                        rootPart.CFrame = FarmPos
+                        rootPart.CanCollide = false
+                        rootPart.Size = Vector3.new(120, 120, 120)
+                        rootPart.Transparency = 1
+                        
+                        -- Vô hiệu hóa mob
+                        humanoid.JumpPower = 0
+                        humanoid.WalkSpeed = 0
+                        
+                        -- Xóa animation
+                        if humanoid:FindFirstChild("Animator") then
+                            humanoid.Animator:Destroy()
+                        end
+                        
+                        -- Tăng simulation radius
+                        sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- Khởi chạy các luồng
 UpdateFarmPosition()
 spawn(function()
     while task.wait(0.05) do
-        BringMobsToPosition()
+        BringMobs()
     end
 end)
 
--- Giữ lại toggle trong Setting
-local v90 = v16.Setting:AddToggle("ToggleBringMob", {
-    Title = "Bring Mob",
-    Description = "Kéo mob về vị trí farm",
-    Default = true
+print("✅ Bring Mob đã được sửa thành công!")
+
+-- =============================================
+-- TIẾP TỤC CODE PHẦN CÒN LẠI CỦA SCRIPT
+-- =============================================
+
+-- Đây là phần Remove Notify (đặt SAU code bring mob)
+local v91 = v16.Setting:AddToggle("ToggleRemoveNotify", {
+    Title = "Remove Notify",
+    Description = "",
+    Default = false
 });
 
-v90:OnChanged(function(v277)
-    _G.BringMob = v277;
+v91:OnChanged(function(v278)
+    RemoveNotify = v278;
 end);
 
-v17.ToggleBringMob:SetValue(true);
+v17.ToggleRemoveNotify:SetValue(false);
 
-print("✅ Bring Mob đã được sửa và tối ưu!")
+-- Phần code tiếp theo của bạn sẽ ở đây...
                             end
                         end
                     end
