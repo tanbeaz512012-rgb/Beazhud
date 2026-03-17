@@ -24,7 +24,7 @@ function NewAttack()
         -- Cách 1: Click chuột ảo
         game:GetService("VirtualUser"):CaptureController()
         game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        task.wait(0.02)
+        task.wait(0.01)
         game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
         
         -- Cách 2: Gửi remote attack trực tiếp
@@ -153,7 +153,7 @@ local function d(v)return(v.Position-game.Players.LocalPlayer.Character.Humanoid
 for _,p in pairs({game.Workspace.Enemies,game.Workspace.Characters})do
 for _,v in pairs(p:GetChildren())do
 if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
-if d(v.HumanoidRootPart)<60 then table.insert(t,v)end
+if d(v.HumanoidRootPart)<70 then table.insert(t,v)end
 end
 end
 end
@@ -197,10 +197,10 @@ local RegisterHit=Net:WaitForChild("RE/RegisterHit")
 local ShootGunEvent=Net:WaitForChild("RE/ShootGunEvent")
 
 getgenv().PMT_GunFast=(getgenv().PMT_GunFast~=false)
-getgenv().PMT_GunFast_Delay=getgenv().PMT_GunFast_Delay or 0.02
+getgenv().PMT_GunFast_Delay=getgenv().PMT_GunFast_Delay or 0.01
 getgenv().PMT_GunFast_PrimeEvery=getgenv().PMT_GunFast_PrimeEvery or 0.35
 
-local Config={AttackDistance=65,AttackMobs=true,AttackPlayers=true,AttackCooldown=0.01,ComboResetTime=0.3,MaxCombo=4,HitboxLimbs={"RightLowerArm","RightUpperArm","LeftLowerArm","LeftUpperArm","RightHand","LeftHand"},AutoClickEnabled=true}
+local Config={AttackDistance=80,AttackMobs=true,AttackPlayers=true,AttackCooldown=0.01,ComboResetTime=0.3,MaxCombo=4,HitboxLimbs={"RightLowerArm","RightUpperArm","LeftLowerArm","LeftUpperArm","RightHand","LeftHand"},AutoClickEnabled=true}
 
 local FastAttack={}
 FastAttack.__index=FastAttack
@@ -344,8 +344,8 @@ if not table.find({"Melee","Blox Fruit","Sword","Gun"},tt) then return end
 local cd=eq:FindFirstChild("Cooldown") and eq.Cooldown.Value or Config.AttackCooldown
 if not self:CheckStun(c,h,tt) then return end
 local cb=self:GetCombo()
-cd=cd+(cb>=Config.MaxCombo and 0.02 or 0)
-self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.02) or tick()
+cd=cd+(cb>=Config.MaxCombo and 0.01 or 0)
+self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.01) or tick()
 if tt=="Blox Fruit" and eq:FindFirstChild("LeftClickRemote") then
 self:UseFruitM1(c,eq,cb)
 elseif tt=="Gun" then
@@ -416,7 +416,7 @@ end
 Register_Hit:FireServer(unpack(args))
 end
 spawn(function()
-while task.wait(0.05) do
+while task.wait(0.01) do
 pcall(function()
 local ch=game.Players.LocalPlayer.Character
 local t=ch and ch:FindFirstChildOfClass("Tool")
@@ -6507,7 +6507,7 @@ spawn(function()
                                 end
                                 v734.HumanoidRootPart.CanCollide = false;
                                 v734.Head.CanCollide = false;
-                                v734.Humanoid:ChangeState(11);                                
+                                v734.Humanoid:ChangeState(14);                                
                                 sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge);
                             end
                         end
