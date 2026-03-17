@@ -6588,30 +6588,7 @@ end);
 
 v17.ToggleRemoveNotify:SetValue(false);
 
--- Phần code tiếp theo của bạn sẽ ở đây...
-                            end
-                        end
-                    end
-                end
-            end
-        end);
-    end
-end);
-local v91 = v16.Setting:AddToggle("ToggleRemoveNotify", {
-    Title = "Remove Notify",
-    Description = "",
-    Default = false
-});
-v91:OnChanged(function(v278)
-    RemoveNotify = v278;
-end);
-v17.ToggleRemoveNotify:SetValue(false);
-spawn(function()
-    while wait() do
-        if RemoveNotify then
-            game.Players.LocalPlayer.PlayerGui.Notifications.Enabled = false;
-        else
-            game.Players.LocalPlayer.PlayerGui.Notifications.Enabled = true;
+-- Phần code tiếp theo của bạn sẽ ở đây...                            
         end
     end
 end);
