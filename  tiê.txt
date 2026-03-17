@@ -2318,9 +2318,9 @@ spawn(function()
         elseif (Type == 3) then
             Pos = CFrame.new(0, 30, 0);
         elseif (Type == 4) then
-            Pos = CFrame.new(0, 30, 30);
+            Pos = CFrame.new(0, 30, 0);
         elseif (Type == 5) then
-            Pos = CFrame.new(0, 30, 30);
+            Pos = CFrame.new(0, 30, 0);
         end
     end
 end);
@@ -6185,50 +6185,78 @@ local v90 = v16.Setting:AddToggle("ToggleBringMob", {
     Title = "Bring Mob",
     Description = "",
     Default = true
-});
+})
+
 v90:OnChanged(function(v277)
-    _G.BringMob = v277;
-end);
-v17.ToggleBringMob:SetValue(true);
+    _G.BringMob = v277
+end)
+
+v17.ToggleBringMob:SetValue(true)
+
+-- Bring Mob được tối ưu hóa
 spawn(function()
-    while wait() do
+    while task.wait(0.1) do
         pcall(function()
-            for v733, v734 in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                if (_G.BringMob and bringmob) then
-                    if ((v734.Name == MonFarm) and v734:FindFirstChild("Humanoid") and (v734.Humanoid.Health > 0)) then
-                        if (v734.Name == "Factory Staff") then
-                            if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 100000) then
-                                v734.Head.CanCollide = false;
-                                v734.HumanoidRootPart.CanCollide = false;
-                                v734.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
-                                v734.HumanoidRootPart.CFrame = FarmPos;
-                                if v734.Humanoid:FindFirstChild("Animator") then
-                                    v734.Humanoid.Animator:Destroy();
-                                end
-                                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge);
+            if _G.BringMob and bringmob and FarmPos then
+                -- Lấy vị trí hiện tại của player
+                local playerPos = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position
+                
+                for _, enemy in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    -- Kiểm tra enemy hợp lệ
+                    if enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
+                        local hum = enemy.Humanoid
+                        local hrp = enemy.HumanoidRootPart
+                        
+                        -- Chỉ bring mob đang farm và còn sống
+                        if enemy.Name == MonFarm and hum.Health > 0 then
+                            -- Tính khoảng cách
+                            local dist = (hrp.Position - FarmPos.Position).Magnitude
+                            
+                            -- Bring mob về gần player nếu ở xa
+                            if dist > 15 and dist < 300 then
+                                hrp.CFrame = FarmPos
                             end
-                        elseif (v734.Name == MonFarm) then
-                            if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 400) then
-                                v734.HumanoidRootPart.CFrame = FarmPos;
-                                v734.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
-                                v734.HumanoidRootPart.Transparency = 1;
-                                v734.Humanoid.JumpPower = 0;
-                                v734.Humanoid.WalkSpeed = 0;
-                                if v734.Humanoid:FindFirstChild("Animator") then
-                                    v734.Humanoid.Animator:Destroy();
-                                end
-                                v734.HumanoidRootPart.CanCollide = false;
-                                v734.Head.CanCollide = false;
-                                v734.Humanoid:ChangeState(14);                                
-                                sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge);
+                            
+                            -- Vô hiệu hóa vật lý của mob
+                            hrp.CanCollide = false
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                            hrp.RotVelocity = Vector3.new(0, 0, 0)
+                            
+                            -- Tăng kích thước để dễ đánh
+                            if hrp.Size.Magnitude < 50 then
+                                hrp.Size = Vector3.new(60, 60, 60)
                             end
+                            
+                            -- Vô hiệu hóa animation và di chuyển
+                            hum.WalkSpeed = 0
+                            hum.JumpPower = 0
+                            hum:ChangeState(Enum.HumanoidStateType.Physics)
+                            
+                            -- Xóa animator để tránh lag
+                            if hum:FindFirstChildOfClass("Animator") then
+                                hum.Animator:Destroy()
+                            end
+                            
+                            -- Tăng simulation radius
+                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
                         end
                     end
                 end
             end
-        end);
+        end)
     end
-end);
+end)
+
+-- Đảm bảo FarmPos được cập nhật
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            if bringmob and game:GetService("Players").LocalPlayer.Character then
+                FarmPos = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+            end
+        end)
+    end
+end)
 local v91 = v16.Setting:AddToggle("ToggleRemoveNotify", {
     Title = "Remove Notify",
     Description = "",
