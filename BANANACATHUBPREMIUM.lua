@@ -9,84 +9,6 @@ local v15 = v14:CreateWindow({
     MinimizeKey = Enum.KeyCode.End
 });
 
--- =============================================
--- FIX LỖI KHÔNG GÂY DAMAGE - THÊM CÁC HÀM ATTACK MỚI
--- =============================================
-
--- Hàm attack mới thay thế AttackNoCoolDown
-function NewAttack()
-    print("✅ Hàm NewAttack được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        local character = player.Character
-        if not character then return end
-        
-        -- Cách 1: Click chuột ảo
-        game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        task.wait(0.001)
-        game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
-        
-        -- Cách 2: Gửi remote attack trực tiếp
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local attackRemote = ReplicatedStorage:FindFirstChild("Remotes") and 
-                             ReplicatedStorage.Remotes:FindFirstChild("Combat") and 
-                             ReplicatedStorage.Remotes.Combat:FindFirstChild("Attack")
-        
-        if attackRemote then
-            attackRemote:FireServer()
-        end
-        
-        -- Cách 3: Kích hoạt tool đang cầm
-        if character:FindFirstChildOfClass("Tool") then
-            local tool = character:FindFirstChildOfClass("Tool")
-            if tool:FindFirstChild("ClickEvent") then
-                tool.ClickEvent:FireServer()
-            elseif tool:FindFirstChild("Activate") then
-                tool.Activate:FireServer()
-            end
-        end
-    end)
-end
-
--- Hàm Auto Haki cải tiến
-function AutoHaki()
-    print("✅ Hàm AutoHaki được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        if player.Character and not player.Character:FindFirstChild("HasBuso") then
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
-        end
-    end)
-end
-
--- Hàm equip vũ khí cải tiến
-function EquipWeapon(weaponName)
-    print("✅ Hàm EquipWeapon được định nghĩa")
-    pcall(function()
-        local player = game:GetService("Players").LocalPlayer
-        if player.Backpack:FindFirstChild(weaponName) then
-            player.Character.Humanoid:EquipTool(player.Backpack[weaponName])
-            return true
-        end
-        return false
-    end)
-end
-
--- Tối ưu tốc độ đánh
-_G.FastAttackStrix_Mode = "Super Fast Attack";
-spawn(function()
-    while task.wait(0.001) do
-        if _G.FastAttackStrix_Mode == "Super Fast Attack" then
-            _G.Fast_Delay = 0.001
-        end
-    end
-end)
-
--- =============================================
--- KHAI BÁO CÁC TAB
--- =============================================
-
 local v16 = {
     Home = v15:AddTab({
         Title = "Tab Information"
@@ -140,294 +62,101 @@ local v16 = {
 -- =============================================
 local v17 = v14.Options;
 -- =============================================
--- FAST ATTACK SYSTEM BY TRIEU
+-- FAST ATTACK SIÊU TỐC - TỐI ƯU HÓA CAO NHẤT
 -- =============================================
 
--- Tải script fast attack
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
+-- Xóa tất cả các hàm fast attack cũ
+_G.FastAttackConfig = {
+    AttackSpeed = 1e-9,
+    AttackRange = 80,
+    MultiHit = true,
+    AutoEquip = true,
+    MaxTargets = 20,
+    SimulationRadius = math.huge
+}
 
--- Hàm attack nhanh
-local function GetBladeHits()
-local t={}
-local function d(v)return(v.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude end
-for _,p in pairs({game.Workspace.Enemies,game.Workspace.Characters})do
-for _,v in pairs(p:GetChildren())do
-if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
-if d(v.HumanoidRootPart)<80 then table.insert(t,v)end
-end
-end
-end
-return t
-end
+-- Biến toàn cục cho code cũ
+_G.Fast_Delay = 1e-9
+_G.FastAttackStrix_Mode = "Super Fast Attack"
 
-local function AttackAll()
-local plr=game.Players.LocalPlayer
-local ch=plr.Character
-if not ch then return end
-local ew=ch:FindFirstChild("EquippedWeapon")
-if not ew then return end
-local e=GetBladeHits()
-if #e>0 then
-local n=game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
-n:WaitForChild("RE/RegisterAttack"):FireServer(-math.huge)
-local a={nil,{}}
-for i,v in pairs(e)do
-if not a[1] then a[1]=v.Head end
-a[2][i]={v,v.HumanoidRootPart}
-end
-n:WaitForChild("RE/RegisterHit"):FireServer(unpack(a))
-end
-end
-spawn(function()while task.wait()do AttackAll()end end)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local VirtualUser = game:GetService("VirtualUser")
 
--- =============================================
--- FAST ATTACK CONFIG
--- =============================================
+local LocalPlayer = Players.LocalPlayer
+local Modules = ReplicatedStorage:WaitForChild("Modules")
+local Net = Modules:WaitForChild("Net")
+local RegisterAttack = Net:WaitForChild("RE/RegisterAttack")
+local RegisterHit = Net:WaitForChild("RE/RegisterHit")
 
-local Players=game:GetService("Players")
-local RunService=game:GetService("RunService")
-local ReplicatedStorage=game:GetService("ReplicatedStorage")
-local Workspace=game:GetService("Workspace")
-
-local Player=Players.LocalPlayer
-local Modules=ReplicatedStorage:WaitForChild("Modules")
-local Net=Modules:WaitForChild("Net")
-local RegisterAttack=Net:WaitForChild("RE/RegisterAttack")
-local RegisterHit=Net:WaitForChild("RE/RegisterHit")
-local ShootGunEvent=Net:WaitForChild("RE/ShootGunEvent")
-
-getgenv().PMT_GunFast=(getgenv().PMT_GunFast~=false)
-getgenv().PMT_GunFast_Delay=getgenv().PMT_GunFast_Delay or 0.01
-getgenv().PMT_GunFast_PrimeEvery=getgenv().PMT_GunFast_PrimeEvery or 0.35
-
-local Config={AttackDistance=80,AttackMobs=true,AttackPlayers=true,AttackCooldown=0.01,ComboResetTime=0.3,MaxCombo=4,HitboxLimbs={"RightLowerArm","RightUpperArm","LeftLowerArm","LeftUpperArm","RightHand","LeftHand"},AutoClickEnabled=true}
-
-local FastAttack={}
-FastAttack.__index=FastAttack
-
-function FastAttack.new()
-local s=setmetatable({Debounce=0,ComboDebounce=0,ShootDebounce=0,M1Combo=0,EnemyRootPart=nil,Connections={},Overheat={Dragonstorm={MaxOverheat=3,Cooldown=0,TotalOverheat=0,Distance=350,Shooting=false}},ShootsPerTarget={["Dual Flintlock"]=2},SpecialShoots={["Skull Guitar"]="TAP",["Bazooka"]="Position",["Cannon"]="Position",["Dragonstorm"]="Overheat"},_GunLastPrime=0,_GunLastShot=0,_LastGunTargetModel=nil,CombatFlags=nil,ShootFunction=nil,HitFunction=nil},FastAttack)
-pcall(function()
-s.CombatFlags=require(Modules.Flags).COMBAT_REMOTE_THREAD
-s.ShootFunction=getupvalue(require(ReplicatedStorage.Controllers.CombatController).Attack,9)
-local ls=Player:WaitForChild("PlayerScripts"):FindFirstChildOfClass("LocalScript")
-if ls and getsenv then s.HitFunction=getsenv(ls)._G.SendHitsToServer end
-end)
-return s
-end
-
-function FastAttack:IsEntityAlive(e)
-local h=e and e:FindFirstChild("Humanoid")
-return h and h.Health>0
+-- Hàm attack chính
+local function SuperFastAttack()
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return end
+    
+    -- Lấy danh sách kẻ địch
+    local enemies = {}
+    local myPos = character:FindFirstChild("HumanoidRootPart")
+    if not myPos then return end
+    myPos = myPos.Position
+    
+    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+        local hrp = enemy:FindFirstChild("HumanoidRootPart")
+        local hum = enemy:FindFirstChild("Humanoid")
+        if hrp and hum and hum.Health > 0 then
+            if (myPos - hrp.Position).Magnitude <= 80 then
+                table.insert(enemies, {enemy, hrp})
+            end
+        end
+    end
+    
+    if #enemies == 0 then return end
+    
+    -- Gửi attack
+    pcall(function()
+        local firstTarget = enemies[1][2]
+        local hitTable = {}
+        for i, enemyData in ipairs(enemies) do
+            hitTable[i] = {enemyData[1], enemyData[2]}
+        end
+        
+        RegisterAttack:FireServer(-math.huge)
+        RegisterHit:FireServer(firstTarget, hitTable)
+    end)
+    
+    -- Click chuột ảo
+    pcall(function()
+        VirtualUser:CaptureController()
+        VirtualUser:Button1Down(Vector2.new(0, 0))
+        task.wait(0.0001)
+        VirtualUser:Button1Up(Vector2.new(0, 0))
+    end)
 end
 
-function FastAttack:CheckStun(c,h,tt)
-local st=c:FindFirstChild("Stun")
-local bs=c:FindFirstChild("Busy")
-if h.Sit and (tt=="Sword" or tt=="Melee" or tt=="Blox Fruit") then return false end
-if (st and st.Value>0) or (bs and bs.Value) then return false end
-return true
-end
-
-function FastAttack:GetBladeHits(c,dist)
-local pos=c:GetPivot().Position
-local bh={}
-dist=dist or Config.AttackDistance
-local function proc(f)
-for _,e in ipairs(f:GetChildren())do
-if e~=c and self:IsEntityAlive(e) then
-local bp=e:FindFirstChild(Config.HitboxLimbs[math.random(#Config.HitboxLimbs)]) or e:FindFirstChild("HumanoidRootPart")
-if bp and (pos-bp.Position).Magnitude<=dist then
-if not self.EnemyRootPart then self.EnemyRootPart=bp else table.insert(bh,{e,bp})end
-end
-end
-end
-end
-if Config.AttackMobs then proc(Workspace.Enemies)end
-if Config.AttackPlayers then proc(Workspace.Characters)end
-return bh
-end
-
-function FastAttack:GetClosestEnemy(c,dist)
-local hits=self:GetBladeHits(c,dist)
-local cl,md=nil,math.huge
-self._LastGunTargetModel=nil
-for _,h in ipairs(hits)do
-local m=(c:GetPivot().Position-h[2].Position).Magnitude
-if m<md then md=m;cl=h[2];self._LastGunTargetModel=h[1] end
-end
-return cl
-end
-
-function FastAttack:GetCombo()
-local cb=(tick()-self.ComboDebounce)<=Config.ComboResetTime and self.M1Combo or 0
-cb=cb>=Config.MaxCombo and 1 or cb+1
-self.ComboDebounce=tick()
-self.M1Combo=cb
-return cb
-end
-
-local function _nv3(p)
-if vector and vector.create then return vector.create(p.X,p.Y,p.Z) end
-return Vector3.new(p.X,p.Y,p.Z)
-end
-
-local function _handle(m)
-if not m or not m.Parent then return nil end
-for _,d in ipairs(m:GetDescendants())do
-if d:IsA("Accessory") then
-local h=d:FindFirstChild("Handle")
-if h and h:IsA("BasePart") then return h end
-end
-end
-local hrp=m:FindFirstChild("HumanoidRootPart")
-if hrp and hrp:IsA("BasePart") then return hrp end
-return nil
-end
-
-function FastAttack:_PrimeGun(tl)
-if not tl or not tl.Parent or tl.Parent~=Player.Character then return end
-local now=os.clock()
-local ev=tonumber(getgenv().PMT_GunFast_PrimeEvery) or 0.001
-if now-(self._GunLastPrime or 0)<ev then return end
-self._GunLastPrime=now
-pcall(function()tl:Activate()end)
-pcall(function()if firesignal and tl.Activated then firesignal(tl.Activated)end end)
-end
-
-function FastAttack:ShootInTarget(tp)
-if not getgenv().PMT_GunFast then return end
-local c=Player.Character
-if not self:IsEntityAlive(c) then return end
-local tl=c:FindFirstChildOfClass("Tool")
-if not tl or tl.ToolTip~="Gun" then return end
-self:_PrimeGun(tl)
-local now=os.clock()
-local del=tonumber(getgenv().PMT_GunFast_Delay) or 0.001
-if now-(self._GunLastShot or 0)<del then return end
-self._GunLastShot=now
-local m=self._LastGunTargetModel
-local h=_handle(m)
-if not h then return end
-pcall(function()ShootGunEvent:FireServer(_nv3(tp),{h})end)
-end
-
-function FastAttack:UseNormalClick(c,h,cd)
-self.EnemyRootPart=nil
-local bh=self:GetBladeHits(c)
-if self.EnemyRootPart then
-RegisterAttack:FireServer(cd)
-if self.CombatFlags and self.HitFunction then
-self.HitFunction(self.EnemyRootPart,bh)
-else
-RegisterHit:FireServer(self.EnemyRootPart,bh)
-end
-end
-end
-
-function FastAttack:UseFruitM1(c,eq,cb)
-local t=self:GetBladeHits(c)
-if not t[1] then return end
-local dir=(t[1][2].Position-c:GetPivot().Position).Unit
-eq.LeftClickRemote:FireServer(dir,cb)
-end
-
-function FastAttack:Attack()
-if not Config.AutoClickEnabled or (tick()-self.Debounce)<Config.AttackCooldown then return end
-local c=Player.Character
-if not c or not self:IsEntityAlive(c) then return end
-local h=c.Humanoid
-local eq=c:FindFirstChildOfClass("Tool")
-if not eq then return end
-local tt=eq.ToolTip
-if not table.find({"Melee","Blox Fruit","Sword","Gun"},tt) then return end
-local cd=eq:FindFirstChild("Cooldown") and eq.Cooldown.Value or Config.AttackCooldown
-if not self:CheckStun(c,h,tt) then return end
-local cb=self:GetCombo()
-cd=cd+(cb>=Config.MaxCombo and 0.001 or 0)
-self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.001) or tick()
-if tt=="Blox Fruit" and eq:FindFirstChild("LeftClickRemote") then
-self:UseFruitM1(c,eq,cb)
-elseif tt=="Gun" then
-local t=self:GetClosestEnemy(c,120)
-if t then self:ShootInTarget(t.Position)end
-else
-self:UseNormalClick(c,h,cd)
-end
-end
-
-local AttackInstance=FastAttack.new()
-table.insert(AttackInstance.Connections,RunService.Stepped:Connect(function()AttackInstance:Attack()end))
-
-RunService.Heartbeat:Connect(function()
-if not getgenv().PMT_GunFast then return end
-local c=Player.Character
-if not c then return end
-local tl=c:FindFirstChildOfClass("Tool")
-if not tl or tl.ToolTip~="Gun" then return end
-AttackInstance:_PrimeGun(tl)
+-- Loop chính
+local attackConnection = RunService.Heartbeat:Connect(function()
+    pcall(SuperFastAttack)
 end)
 
-for _,v in pairs(getgc(true))do
-if typeof(v)=="function" and iscclosure(v) then
-local n=debug.getinfo(v).name
-if n=="Attack" or n=="attack" or n=="RegisterHit" then
-hookfunction(v,function(...)
-AttackInstance:Attack()
-return v(...)
-end)
-end
-end
-end
+-- Gán cho hàm cũ để tương thích
+AttackNoCoolDown = SuperFastAttack
+NewAttack = SuperFastAttack
 
-local Modules=game.ReplicatedStorage.Modules
-local Net=Modules.Net
-local Register_Hit,Register_Attack=Net:WaitForChild("RE/RegisterHit"),Net:WaitForChild("RE/RegisterAttack")
-local Funcs={}
-function GetAllBladeHits()
-bladehits={}
-for _,v in pairs(workspace.Enemies:GetChildren())do
-if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health>0 and (v.HumanoidRootPart.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude<=65 then
-table.insert(bladehits,v)
-end
-end
-return bladehits
-end
-function Getplayerhit()
-bladehits={}
-for _,v in pairs(workspace.Characters:GetChildren())do
-if v.Name~=game.Players.LocalPlayer.Name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health>0 and (v.HumanoidRootPart.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude<=65 then
-table.insert(bladehits,v)
-end
-end
-return bladehits
-end
-function Funcs:Attack()
-local bladehits={}
-for _,v in pairs(GetAllBladeHits())do table.insert(bladehits,v)end
-for _,v in pairs(Getplayerhit())do table.insert(bladehits,v)end
-if #bladehits==0 then return end
-local args={[1]=nil,[2]={},[4]="078da341"}
-for r,v in pairs(bladehits)do
-Register_Attack:FireServer(0)
-if not args[1] then args[1]=v.Head end
-args[2][r]={[1]=v,[2]=v.HumanoidRootPart}
-end
-Register_Hit:FireServer(unpack(args))
-end
+-- Tăng simulation radius
 spawn(function()
-while task.wait(0.001) do
-pcall(function()
-local ch=game.Players.LocalPlayer.Character
-local t=ch and ch:FindFirstChildOfClass("Tool")
-if t then Funcs:Attack() end
-end)
-end
+    while task.wait() do
+        pcall(function()
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+        end)
+    end
 end)
 
--- =============================================
--- KẾT THÚC FAST ATTACK
--- =============================================
+print("✅ Fast Attack Siêu Tốc đã được kích hoạt!")
 local v18 = game.PlaceId;
 if (v18 == 2753915549) then
     Sea1 = true;
@@ -2602,13 +2331,13 @@ spawn(function()
         if (Type == 1) then
             Pos = CFrame.new(0, 30, 0);
         elseif (Type == 2) then
-            Pos = CFrame.new(- 30, 30, 0);
+            Pos = CFrame.new(0, 30, 0);
         elseif (Type == 3) then
-            Pos = CFrame.new(30, 30, 0);
+            Pos = CFrame.new(0, 30, 0);
         elseif (Type == 4) then
-            Pos = CFrame.new(0,30, - 30);
+            Pos = CFrame.new(0, 30, 30);
         elseif (Type == 5) then
-            Pos = CFrame.new(0, 30, - 30);
+            Pos = CFrame.new(0, 30, 30);
         end
     end
 end);
@@ -2671,7 +2400,7 @@ function to(v233)
                 repeat
                     wait(_G.Fast_Delay);
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v233;
-                    wait(0.02);
+                    wait(0.001);
                     game.Players.LocalPlayer.Character.Head:Destroy();
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v233;
                 until ((v233.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2500) and (game.Players.LocalPlayer.Character.Humanoid.Health > 0)
@@ -2879,12 +2608,12 @@ spawn(function()
                             if (v1433.Name == Ms) then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     bringmob = true;
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     Tween(v1433.HumanoidRootPart.CFrame * Pos);
-                                    v1433.HumanoidRootPart.Size = Vector3.new(100, 100, 100);
+                                    v1433.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     v1433.HumanoidRootPart.Transparency = 1;
                                     v1433.Humanoid.JumpPower = 0;
                                     v1433.Humanoid.WalkSpeed = 0;
@@ -2932,12 +2661,12 @@ spawn(function()
                             if ((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v839:FindFirstChild("HumanoidRootPart").Position).Magnitude <= 5000) then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     bringmob = true;
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     Tween(v839.HumanoidRootPart.CFrame * Pos);
-                                    v839.HumanoidRootPart.Size = Vector3.new(100, 100, 100);
+                                    v839.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     v839.HumanoidRootPart.Transparency = 1;
                                     v839.Humanoid.JumpPower = 0;
                                     v839.Humanoid.WalkSpeed = 0;
@@ -2974,11 +2703,11 @@ spawn(function()
                             if ((v1031.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 2000) then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     v1031.HumanoidRootPart.CanCollide = false;
-                                    v1031.HumanoidRootPart.Size = Vector3.new(100, 100, 100);
+                                    v1031.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
                                     Tween(v1031.HumanoidRootPart.CFrame * Pos);
                                 until (v1031.Humanoid.Health <= 0) or not v1031.Parent or not _G.CastleRaid
                             end
@@ -3186,7 +2915,7 @@ spawn(function()
                                     v843.HumanoidRootPart.CanCollide = false;
                                     FarmPos = v843.HumanoidRootPart.CFrame;
                                     MonFarm = v843.Name;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 end
                             until not AutoFarmMasDevilFruit or (not MasteryType == "Near Mobs") or not v843.Parent or (v843.Humanoid.Health == 0)
                             bringmob = false;
@@ -3248,7 +2977,7 @@ if Sea3 then
                                         if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "Demonic Soul") then
                                             repeat
                                                 wait(_G.Fast_Delay);
-                                                AttackNoCoolDown();
+                                                SuperFastAttack();
                                                 AutoHaki();
                                                 bringmob = true;
                                                 EquipTool(SelectWeapon);
@@ -3289,7 +3018,7 @@ if Sea3 then
                                 if ((v1437.Name == "Reborn Skeleton") or (v1437.Name == "Living Zombie") or (v1437.Name == "Demonic Soul") or (v1437.Name == "Posessed Mummy")) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         bringmob = true;
                                         EquipTool(SelectWeapon);
@@ -3392,7 +3121,7 @@ if Sea3 then
                                         v1439.Humanoid.WalkSpeed = 0;
                                         v1439.HumanoidRootPart.Size = Vector3.new(100, 100, 100);
                                         Tween(v1439.HumanoidRootPart.CFrame * Pos);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                     until not _G.CakePrince or not v1439.Parent or (v1439.Humanoid.Health <= 0)
                                 end
                             end
@@ -3416,7 +3145,7 @@ if Sea3 then
                                             FarmPos = v1755.HumanoidRootPart.CFrame;
                                             MonFarm = v1755.Name;
                                             Tween(v1755.HumanoidRootPart.CFrame * Pos);
-                                            AttackNoCoolDown();
+                                            SuperFastAttack();
                                         until not _G.CakePrince or not v1755.Parent or (v1755.Humanoid.Health <= 0) or (game:GetService("Workspace").Map.CakeLoaf.BigMirror.Other.Transparency == 0) or game:GetService("ReplicatedStorage"):FindFirstChild("Cake Prince [Lv. 2300] [Raid Boss]") or game:GetService("Workspace").Enemies:FindFirstChild("Cake Prince [Lv. 2300] [Raid Boss]")
                                         bringmob = false;
                                     end
@@ -3458,7 +3187,7 @@ if Sea3 then
                                         v1441.Humanoid.WalkSpeed = 0;
                                         v1441.HumanoidRootPart.Size = Vector3.new(100, 100, 100);
                                         Tween(v1441.HumanoidRootPart.CFrame * Pos);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                     until not _G.DoughKing or not v1441.Parent or (v1441.Humanoid.Health <= 0)
                                 end
                             end
@@ -3514,7 +3243,7 @@ if Sea2 then
                                 if (v1443.Humanoid.Health > 0) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         bringmob = true;
                                         EquipTool(SelectWeapon);
@@ -3617,7 +3346,7 @@ spawn(function()
                             if (v1035:FindFirstChild("Humanoid") and v1035:FindFirstChild("HumanoidRootPart") and (v1035.Humanoid.Health > 0)) then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     v1035.HumanoidRootPart.CanCollide = false;
@@ -3705,7 +3434,7 @@ spawn(function()
                             if (v1037.Name == MMon) then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     AutoHaki();
                                     bringmob = true;
                                     EquipTool(SelectWeapon);
@@ -4338,7 +4067,7 @@ if Sea3 then
                                 if (v1445:FindFirstChild("Humanoid") and v1445:FindFirstChild("HumanoidRootPart") and (v1445.Humanoid.Health > 0)) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         EquipTool(SelectWeapon);
                                         v1445.HumanoidRootPart.CanCollide = false;
@@ -4376,7 +4105,7 @@ if Sea3 then
                                 if (v1447:FindFirstChild("Humanoid") and v1447:FindFirstChild("HumanoidRootPart") and (v1447.Humanoid.Health > 0)) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         EquipTool(SelectWeapon);
                                         v1447.HumanoidRootPart.CanCollide = false;
@@ -4414,7 +4143,7 @@ if Sea3 then
                                 if (v1449:FindFirstChild("Humanoid") and v1449:FindFirstChild("HumanoidRootPart") and (v1449.Humanoid.Health > 0)) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         EquipTool(SelectWeapon);
                                         v1449.HumanoidRootPart.CanCollide = false;
@@ -4456,7 +4185,7 @@ if Sea3 then
                                 if (v1451:FindFirstChild("Humanoid") and v1451:FindFirstChild("HumanoidRootPart") and (v1451.Humanoid.Health > 0)) then
                                     repeat
                                         wait(_G.Fast_Delay);
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         AutoHaki();
                                         EquipTool(SelectWeapon);
                                         v1451.HumanoidRootPart.CanCollide = false;
@@ -4682,7 +4411,7 @@ if Sea3 then
                                         if ((v1664.Name == "Diablo") or (v1664.Name == "Deandre") or (v1664.Name == "Urban")) then
                                             repeat
                                                 wait(_G.Fast_Delay);
-                                                AttackNoCoolDown();
+                                                SuperFastAttack();
                                                 EquipTool(SelectWeapon);
                                                 AutoHaki();
                                                 Tween2(v1664.HumanoidRootPart.CFrame * Pos);
@@ -4918,7 +4647,7 @@ spawn(function()
                                                 v1800.Humanoid.WalkSpeed = 0;
                                                 v1800.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
                                                 Tween(v1800.HumanoidRootPart.CFrame * Pos);
-                                                AttackNoCoolDown();
+                                                SuperFastAttack();
                                             until (v1800.Humanoid.Health <= 0) or not _G.Auto_Saber
                                         end
                                     end
@@ -4951,7 +4680,7 @@ spawn(function()
                                     bringmob = true;
                                     FarmPos = v1461.HumanoidRootPart.CFrame;
                                     MonFarm = v1461.Name;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until (v1461.Humanoid.Health <= 0) or not _G.Auto_Saber
                                 bringmob = true;
                                 if (v1461.Humanoid.Health <= 0) then
@@ -4991,7 +4720,7 @@ spawn(function()
                                     v1043.Humanoid.WalkSpeed = 0;
                                     v1043.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1043.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_PoleV1 or not v1043.Parent or (v1043.Humanoid.Health <= 0)
                             end
                         end
@@ -5033,7 +4762,7 @@ spawn(function()
                                     v1045.Humanoid.WalkSpeed = 0;
                                     v1045.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1045.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_Saw or not v1045.Parent or (v1045.Humanoid.Health <= 0)
                             end
                         end
@@ -5075,7 +4804,7 @@ spawn(function()
                                     v1047.Humanoid.WalkSpeed = 0;
                                     v1047.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1047.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_Warden or not v1047.Parent or (v1047.Humanoid.Health <= 0)
                             end
                         end
@@ -5110,7 +4839,7 @@ if Sea3 then
                             if string.find(v1463.Name, "Soul Reaper") then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     v1463.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
@@ -5186,7 +4915,7 @@ if Sea3 then
                         if ((v1341.Name == ("Longma" or (v1341.Name == "Longma"))) and (v1341.Humanoid.Health > 0) and v1341:IsA("Model") and v1341:FindFirstChild("Humanoid") and v1341:FindFirstChild("HumanoidRootPart")) then
                             repeat
                                 wait(_G.Fast_Delay);
-                                AttackNoCoolDown();
+                                SuperFastAttack();
                                 AutoHaki();
                                 if not game.Players.LocalPlayer.Character:FindFirstChild(SelectWeapon) then
                                     wait();
@@ -5277,7 +5006,7 @@ spawn(function()
                                     v1049.Humanoid.WalkSpeed = 0;
                                     v1049.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1049.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_Canvander or not v1049.Parent or (v1049.Humanoid.Health <= 0)
                             end
                         end
@@ -5319,7 +5048,7 @@ spawn(function()
                                             v1560.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                             Tween(v1560.HumanoidRootPart.CFrame * Pos);
                                             v1560.HumanoidRootPart.CanCollide = false;
-                                            AttackNoCoolDown();
+                                            SuperFastAttack();
                                             PosMon = v1560.HumanoidRootPart.CFrame;
                                             MonFarm = v1560.Name;
                                             bringmob = true;
@@ -5355,7 +5084,7 @@ spawn(function()
                                             Tween(v1666.HumanoidRootPart.CFrame * Pos);
                                             v1666.HumanoidRootPart.CanCollide = false;
                                             v1666.HumanoidRootPart.CFrame = OldCFrameElephant;
-                                            AttackNoCoolDown();
+                                            SuperFastAttack();
                                         end);
                                     until (_G.Auto_MusketeerHat == false) or (v1666.Humanoid.Health <= 0) or not v1666.Parent or (game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false)
                                 end
@@ -5456,7 +5185,7 @@ spawn(function()
                                     v1564.HumanoidRootPart.CanCollide = false;
                                     v1564.HumanoidRootPart.CFrame = OldCFrameRainbow;
                                     v1564.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_RainbowHaki or (v1564.Humanoid.Health <= 0) or not v1564.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
                             end
                         end
@@ -5475,7 +5204,7 @@ spawn(function()
                                     v1670.HumanoidRootPart.CanCollide = false;
                                     v1670.HumanoidRootPart.CFrame = OldCFrameRainbow;
                                     v1670.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_RainbowHaki or (v1670.Humanoid.Health <= 0) or not v1670.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
                             end
                         end
@@ -5494,7 +5223,7 @@ spawn(function()
                                     v1763.HumanoidRootPart.CanCollide = false;
                                     v1763.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     v1763.HumanoidRootPart.CFrame = OldCFrameRainbow;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_RainbowHaki or (v1763.Humanoid.Health <= 0) or not v1763.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
                             end
                         end
@@ -5513,7 +5242,7 @@ spawn(function()
                                     v1775.HumanoidRootPart.CanCollide = false;
                                     v1775.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     v1775.HumanoidRootPart.CFrame = OldCFrameRainbow;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_RainbowHaki or (v1775.Humanoid.Health <= 0) or not v1775.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
                             end
                         end
@@ -5532,7 +5261,7 @@ spawn(function()
                                     v1803.HumanoidRootPart.CanCollide = false;
                                     v1803.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     v1803.HumanoidRootPart.CFrame = OldCFrameRainbow;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_RainbowHaki or (v1803.Humanoid.Health <= 0) or not v1803.Parent or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
                             end
                         end
@@ -5699,7 +5428,7 @@ spawn(function()
                                     v1051.Humanoid.WalkSpeed = 0;
                                     v1051.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1051.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 until not _G.Auto_Buddy or not v1051.Parent or (v1051.Humanoid.Health <= 0)
                             end
                         end
@@ -5825,7 +5554,7 @@ spawn(function()
                                         bringmob = true;
                                         FarmPos = v1843.HumanoidRootPart.CFrame;
                                         MonFarm = v1843.Name;
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                     end
                                 end
                             end
@@ -5927,7 +5656,7 @@ spawn(function()
                                 v866.HumanoidRootPart.CanCollide = false;
                                 FarmPos = v866.HumanoidRootPart.CFrame;
                                 MonFarm = v866.Name;
-                                AttackNoCoolDown();
+                                SuperFastAttack();
                                 if ((v866.Humanoid.Health <= 0) and v866.Humanoid:FindFirstChild("Animator")) then
                                     v866.Humanoid.Animator:Destroy();
                                 end
@@ -5973,7 +5702,7 @@ spawn(function()
                                             v1642.HumanoidRootPart.CanCollide = false;
                                             FarmPos = v1642.HumanoidRootPart.CFrame;
                                             MonFarm = v1642.Name;
-                                            AttackNoCoolDown();
+                                            SuperFastAttack();
                                             if ((v1642.Humanoid.Health <= 0) and v1642.Humanoid:FindFirstChild("Animator")) then
                                                 v1642.Humanoid.Animator:Destroy();
                                             end
@@ -6050,7 +5779,7 @@ spawn(function()
                                     v1062.HumanoidRootPart.CanCollide = false;
                                     FarmPos = v1062.HumanoidRootPart.CFrame;
                                     MonFarm = v1062.Name;
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     if ((v1062.Humanoid.Health <= 0) and v1062.Humanoid:FindFirstChild("Animator")) then
                                         v1062.Humanoid.Animator:Destroy();
                                     end
@@ -6085,7 +5814,7 @@ spawn(function()
                                         v1465.HumanoidRootPart.CanCollide = false;
                                         FarmPos = v1465.HumanoidRootPart.CFrame;
                                         MonFarm = v1465.Name;
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         if ((v1465.Humanoid.Health <= 0) and v1465.Humanoid:FindFirstChild("Animator")) then
                                             v1465.Humanoid.Animator:Destroy();
                                         end
@@ -6114,7 +5843,7 @@ spawn(function()
                                             v1651.HumanoidRootPart.CanCollide = false;
                                             FarmPos = v1651.HumanoidRootPart.CFrame;
                                             MonFarm = v1651.Name;
-                                            AttackNoCoolDown();
+                                            SuperFastAttack();
                                             if ((v1651.Humanoid.Health <= 0) and v1651.Humanoid:FindFirstChild("Animator")) then
                                                 v1651.Humanoid.Animator:Destroy();
                                             end
@@ -6162,7 +5891,7 @@ if Sea2 then
                         if ((v1345.Name == "Core") and (v1345.Humanoid.Health > 0)) then
                             repeat
                                 wait(_G.Fast_Delay);
-                                AttackNoCoolDown();
+                                SuperFastAttack();
                                 repeat
                                     Tween(CFrame.new(448.46756, 199.356781, - 441.389252));
                                     wait();
@@ -6214,7 +5943,7 @@ spawn(function()
                                     v1064.HumanoidRootPart.CanCollide = false;
                                     v1064.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                     Tween(v1064.HumanoidRootPart.CFrame * Pos);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                 end);
                             until (_G.AutoFarmSwan == false) or (v1064.Humanoid.Health <= 0)
                         end
@@ -6257,7 +5986,7 @@ spawn(function()
                                 FarmPos = v1467.HumanoidRootPart.CFrame;
                                 MonFarm = v1467.Name;
                                 Tween(v1467.HumanoidRootPart.CFrame * Pos);
-                                AttackNoCoolDown();
+                                SuperFastAttack();
                                 bringmob = true;
                             until game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Hidden Key") or (_G.Auto_Regoku == false) or not v1467.Parent or (v1467.Humanoid.Health <= 0)
                             bringmob = false;
@@ -6357,7 +6086,7 @@ if Sea2 then
                                                     Tween(v1835.HumanoidRootPart.CFrame * Pos);
                                                     v1835.HumanoidRootPart.CanCollide = false;
                                                     v1835.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
-                                                    AttackNoCoolDown();
+                                                    SuperFastAttack();
                                                     FarmPos = v1835.HumanoidRootPart.CFrame;
                                                     MonFarm = v1835.Name;
                                                     bringmob = true;
@@ -6485,7 +6214,7 @@ spawn(function()
                 if (_G.BringMob and bringmob) then
                     if ((v734.Name == MonFarm) and v734:FindFirstChild("Humanoid") and (v734.Humanoid.Health > 0)) then
                         if (v734.Name == "Factory Staff") then
-                            if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 400) then
+                            if ((v734.HumanoidRootPart.Position - FarmPos.Position).Magnitude <= 100000) then
                                 v734.Head.CanCollide = false;
                                 v734.HumanoidRootPart.CanCollide = false;
                                 v734.HumanoidRootPart.Size = Vector3.new(120, 120, 120);
@@ -6964,7 +6693,7 @@ spawn(function()
                                                 v1681.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                                 v1681.HumanoidRootPart.CFrame = OldCFrameSecond;
                                                 Tween(v1681.HumanoidRootPart.CFrame * Pos);
-                                                AttackNoCoolDown();
+                                                SuperFastAttack();
                                                 sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge);
                                             until not _G.Auto_Sea2 or not v1681.Parent or (v1681.Humanoid.Health <= 0)
                                         end
@@ -7017,7 +6746,7 @@ spawn(function()
                                         v1579.HumanoidRootPart.Size = Vector3.new(50, 50, 50);
                                         v1579.HumanoidRootPart.CanCollide = false;
                                         v1579.Humanoid.WalkSpeed = 0;
-                                        AttackNoCoolDown();
+                                        SuperFastAttack();
                                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou");
                                     until (_G.AutoSea3 == false) or (v1579.Humanoid.Health <= 0) or not v1579.Parent
                                 end
@@ -8106,7 +7835,7 @@ spawn(function()
                             if (v1469.Name == "Order") then
                                 repeat
                                     wait(_G.Fast_Delay);
-                                    AttackNoCoolDown();
+                                    SuperFastAttack();
                                     AutoHaki();
                                     EquipTool(SelectWeapon);
                                     Tween(v1469.HumanoidRootPart.CFrame * Pos);
@@ -8325,7 +8054,7 @@ spawn(function()
                                 Tween(v871.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5));
                                 v871.Character.HumanoidRootPart.CanCollide = false;
                                 v871.Character.HumanoidRootPart.Size = Vector3.new(60, 60, 60);
-                                AttackNoCoolDown();
+                                SuperFastAttack();
                             until not _G.AutoKillTrial or not v871.Parent or (v871.Character.Humanoid.Health <= 0)
                         end
                     end
