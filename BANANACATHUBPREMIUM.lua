@@ -24,7 +24,7 @@ function NewAttack()
         -- Cách 1: Click chuột ảo
         game:GetService("VirtualUser"):CaptureController()
         game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0))
-        task.wait(0.01)
+        task.wait(0.001)
         game:GetService("VirtualUser"):Button1Up(Vector2.new(0,0))
         
         -- Cách 2: Gửi remote attack trực tiếp
@@ -76,9 +76,9 @@ end
 -- Tối ưu tốc độ đánh
 _G.FastAttackStrix_Mode = "Super Fast Attack";
 spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.001) do
         if _G.FastAttackStrix_Mode == "Super Fast Attack" then
-            _G.Fast_Delay = 0.02
+            _G.Fast_Delay = 0.001
         end
     end
 end)
@@ -153,7 +153,7 @@ local function d(v)return(v.Position-game.Players.LocalPlayer.Character.Humanoid
 for _,p in pairs({game.Workspace.Enemies,game.Workspace.Characters})do
 for _,v in pairs(p:GetChildren())do
 if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
-if d(v.HumanoidRootPart)<70 then table.insert(t,v)end
+if d(v.HumanoidRootPart)<80 then table.insert(t,v)end
 end
 end
 end
@@ -288,7 +288,7 @@ end
 function FastAttack:_PrimeGun(tl)
 if not tl or not tl.Parent or tl.Parent~=Player.Character then return end
 local now=os.clock()
-local ev=tonumber(getgenv().PMT_GunFast_PrimeEvery) or 0.35
+local ev=tonumber(getgenv().PMT_GunFast_PrimeEvery) or 0.001
 if now-(self._GunLastPrime or 0)<ev then return end
 self._GunLastPrime=now
 pcall(function()tl:Activate()end)
@@ -303,7 +303,7 @@ local tl=c:FindFirstChildOfClass("Tool")
 if not tl or tl.ToolTip~="Gun" then return end
 self:_PrimeGun(tl)
 local now=os.clock()
-local del=tonumber(getgenv().PMT_GunFast_Delay) or 0.02
+local del=tonumber(getgenv().PMT_GunFast_Delay) or 0.001
 if now-(self._GunLastShot or 0)<del then return end
 self._GunLastShot=now
 local m=self._LastGunTargetModel
@@ -344,8 +344,8 @@ if not table.find({"Melee","Blox Fruit","Sword","Gun"},tt) then return end
 local cd=eq:FindFirstChild("Cooldown") and eq.Cooldown.Value or Config.AttackCooldown
 if not self:CheckStun(c,h,tt) then return end
 local cb=self:GetCombo()
-cd=cd+(cb>=Config.MaxCombo and 0.01 or 0)
-self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.01) or tick()
+cd=cd+(cb>=Config.MaxCombo and 0.001 or 0)
+self.Debounce=cb>=Config.MaxCombo and tt~="Gun" and (tick()+0.001) or tick()
 if tt=="Blox Fruit" and eq:FindFirstChild("LeftClickRemote") then
 self:UseFruitM1(c,eq,cb)
 elseif tt=="Gun" then
@@ -416,7 +416,7 @@ end
 Register_Hit:FireServer(unpack(args))
 end
 spawn(function()
-while task.wait(0.01) do
+while task.wait(0.001) do
 pcall(function()
 local ch=game.Players.LocalPlayer.Character
 local t=ch and ch:FindFirstChildOfClass("Tool")
