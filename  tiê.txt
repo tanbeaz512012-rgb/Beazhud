@@ -6217,7 +6217,7 @@ spawn(function()
                             local dist = (hrp.Position - playerPos).Magnitude
                             
                             -- Nếu mob cách xa hơn 25 studs thì kéo về
-                            if dist > 25 then
+                            if dist > 15 then
                                 -- Tính toán vị trí cách player 25 studs theo hướng hiện tại
                                 local direction = (playerCF.LookVector * 25)
                                 hrp.CFrame = CFrame.new(
